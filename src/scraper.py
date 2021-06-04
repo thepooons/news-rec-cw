@@ -1,12 +1,11 @@
 import pandas as pd
-import numpy as np
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from abc import ABC, abstractmethod
 from tqdm import tqdm
 from datetime import datetime
 from time import sleep
-
+import requests
 
 """Scraping News"""
 
@@ -62,6 +61,7 @@ class NewsScraper(ABC):
     @abstractmethod
     def scrape_article_contents(self):
         """
+        NOTE: use beautifulsoup, it's faster
         for each link in `article_hrefs`:
             - scrap:
                 - title  
@@ -108,43 +108,73 @@ class BBCNewsScraper(NewsScraper):
                 for article_href_this_page in article_hrefs_this_page:
                     self.article_hrefs.append(article_href_this_page)
 
+                for reload in range(20): # @TODO: increase this value 
+                    # scrap links given in lower part of the page
+                    try:
+                        href_elements = driver.find_elements_by_xpath(
+                            xpath="//a[@class='qa-heading-link lx-stream-post__header-link']"
+                        )
+                        article_hrefs_this_page = [tag.get_attribute("href") for tag in href_elements]
+                    except:
+                        break
+                    for article_href_this_page in article_hrefs_this_page:
+                        self.article_hrefs.append(article_href_this_page)
+                    # once all links for current page have been srcaped -> move to next page
+                    try:
+                        button = driver.find_element_by_xpath(
+                            xpath="//a[@class='lx-pagination__btn gs-u-mr+ qa-pagination-next-page lx-pagination__btn--active']"
+                        )
+                        button.click()
+                        sleep(1)
+                    except:
+                        break
+                    
     def scrape_article_contents(self):
-        news_data = pd.DataFrame(columns=["url", "title", "raw_text", "publish_datetime"])
+        news_data = pd.DataFrame(columns=["url", "title", "raw_text", "author", "publish_datetime"])
         driver = self.driver
+
+        # title class: ssrcss-1pl2zfy-StyledHeading e1fj1fc10
+        # raw_text class: ssrcss-18snukc-RichTextContainer e5tfeyi1
+        # publish_date data-testid: timestamp
         # url
         self.article_hrefs = list(set(self.article_hrefs))
         for article_index, article_url in enumerate(tqdm(self.article_hrefs)):
-            print("now", article_url)
-            if "news/av/" in article_url:
+            if "news/av/" in str(article_url):
                 print(f"[{self.__class__.__name__}] video article found, skipping")
                 continue
             if article_url not in self.disallowed_urls:
-                driver.get(article_url)
+                html = requests.get(article_url).text
+                soup = BeautifulSoup(html, "html.parser")
                 # title
                 try:
-                    title_element = driver.find_element_by_xpath("//h1[@class='ssrcss-1pl2zfy-StyledHeading e1fj1fc10']")
-                    title = title_element.text
+                    title = soup.find(lambda tag: tag.name == 'h1' and tag['class'] == "ssrcss-1pl2zfy-StyledHeading e1fj1fc10".split(" "))
+                    title = title.text.strip()
                 except:
+                    print(f"[{self.__class__.__name__}] title not found, skipping")
                     continue
                 # raw_text
                 try:
-                    raw_text_elements = driver.find_elements_by_xpath("//div[@class='ssrcss-18snukc-RichTextContainer e5tfeyi1']")
+                    raw_text = soup.find_all(class_="ssrcss-18snukc-RichTextContainer e5tfeyi1")
+                    raw_text = "".join([str(raw_text_.text.strip()) + " " for raw_text_ in raw_text])
+                except:
                     raw_text = ""
-                    for raw_text_element in raw_text_elements:
-                        raw_text += (" " + raw_text_element.text)
-                    raw_text = raw_text.strip()
-                except:
-                    continue
-                # publish_datetime
+                # author
                 try:
-                    datetime_element = driver.find_element_by_xpath("//time[@data-testid='timestamp']")
-                    publish_datetime = str(datetime_element.get_attribute("datetime"))
+                    author = soup.find(class_="ssrcss-1pjc44v-Contributor e5xb54n2").text
+                    author = author[len("By "):]
                 except:
-                    continue
+                    author = "bbc"
+                # publish_date
+                try:
+                    publish_datetime = soup.find("time")["datetime"]
+                except:
+                    publish_datetime = datetime.now()
+
                 this_article_data = pd.DataFrame(data={
                     "url": [article_url],
                     "title": [title],
                     "raw_text": [raw_text],
+                    "author": [author],
                     "publish_datetime": [publish_datetime], 
                 })
                 
@@ -153,7 +183,9 @@ class BBCNewsScraper(NewsScraper):
                 news_data.to_csv(
                     f"{self.data_dir}/{self.__class__.__name__}_at_{str(datetime.today().date())}.csv",
                     index=False
-                    )
+                )
+            if article_index%20 == 0:
+                print(news_data.tail())
 
 if __name__ == "__main__":
     BBC_DISALLOW_STRING = """
