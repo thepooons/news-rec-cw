@@ -112,21 +112,35 @@ class BBCNewsScraper(NewsScraper):
         news_data = pd.DataFrame(columns=["url", "title", "raw_text", "publish_datetime"])
         driver = self.driver
         # url
+        self.article_hrefs = list(set(self.article_hrefs))
         for article_index, article_url in enumerate(tqdm(self.article_hrefs)):
+            print("now", article_url)
+            if "news/av/" in article_url:
+                print(f"[{self.__class__.__name__}] video article found, skipping")
+                continue
             if article_url not in self.disallowed_urls:
                 driver.get(article_url)
                 # title
-                title_element = driver.find_element_by_xpath("//h1[@class='ssrcss-1pl2zfy-StyledHeading e1fj1fc10']")
-                title = title_element.text
+                try:
+                    title_element = driver.find_element_by_xpath("//h1[@class='ssrcss-1pl2zfy-StyledHeading e1fj1fc10']")
+                    title = title_element.text
+                except:
+                    continue
                 # raw_text
-                raw_text_elements = driver.find_elements_by_xpath("//div[@class='ssrcss-18snukc-RichTextContainer e5tfeyi1']")
-                raw_text = ""
-                for raw_text_element in raw_text_elements:
-                    raw_text += (" " + raw_text_element.text)
-                raw_text = raw_text.strip()
+                try:
+                    raw_text_elements = driver.find_elements_by_xpath("//div[@class='ssrcss-18snukc-RichTextContainer e5tfeyi1']")
+                    raw_text = ""
+                    for raw_text_element in raw_text_elements:
+                        raw_text += (" " + raw_text_element.text)
+                    raw_text = raw_text.strip()
+                except:
+                    continue
                 # publish_datetime
-                datetime_element = driver.find_element_by_xpath("//time[@data-testid='timestamp']")
-                publish_datetime = str(datetime_element.get_attribute("datetime"))
+                try:
+                    datetime_element = driver.find_element_by_xpath("//time[@data-testid='timestamp']")
+                    publish_datetime = str(datetime_element.get_attribute("datetime"))
+                except:
+                    continue
                 this_article_data = pd.DataFrame(data={
                     "url": [article_url],
                     "title": [title],
@@ -140,8 +154,6 @@ class BBCNewsScraper(NewsScraper):
                     f"{self.data_dir}/{self.__class__.__name__}_at_{str(datetime.today().date())}.csv",
                     index=False
                     )
-            if article_index%20 == 0:
-                sleep(5)
 
 if __name__ == "__main__":
     BBC_DISALLOW_STRING = """
