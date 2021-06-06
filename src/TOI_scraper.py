@@ -25,7 +25,7 @@ def collect_data_via_links(link_list, sleep_duration):
         if get_page.status_code == 200:
             content = get_page.content
             soup = BeautifulSoup(
-                markup=content, features="html.parser")
+                markup=content, features="lxml")
 
             # Get body and heading
             flag = False
@@ -74,7 +74,7 @@ def collect_soup(link_to_collect):
     if get_page.status_code == 200:
         content = get_page.content
         soup = BeautifulSoup(
-            markup=content, features="html.parser")
+            markup=content, features="lxml")
 
         # Return the soup
         return soup
@@ -180,7 +180,6 @@ class TOI_SCRAPER(object):
 
         assert len(list_headings_all) == len(
             list_body_all), "Error Heading and body mismatch %d-%d" % (len(list_headings_all), len(list_body_all))
-        time.sleep(5)
 
         # Make DataFrame
         print("Creating dataframe.....")
@@ -193,7 +192,7 @@ class TOI_SCRAPER(object):
                          (datetime.datetime.now().date()), index=False)
 
 
-SLEEP_DURATION = 0.3
+SLEEP_DURATION = 0.1
 TOTAL_PAGES = 5
 instance = TOI_SCRAPER(sleep_duration=SLEEP_DURATION, total_pages=TOTAL_PAGES)
 instance.make_dataframe_combined()
