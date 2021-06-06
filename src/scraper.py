@@ -69,8 +69,8 @@ class NewsScraper(ABC):
                 - author  
                 - raw_text  
                 - publish_date  
-                - images  
-                - tags
+                - (images  
+                - tags)
         """
         pass
 
@@ -108,7 +108,7 @@ class BBCNewsScraper(NewsScraper):
                 for article_href_this_page in article_hrefs_this_page:
                     self.article_hrefs.append(article_href_this_page)
 
-                for reload in range(20): # @TODO: increase this value 
+                for reload in range(50): # @NOTE: increase this value 
                     # scrap links given in lower part of the page
                     try:
                         href_elements = driver.find_elements_by_xpath(
@@ -137,13 +137,13 @@ class BBCNewsScraper(NewsScraper):
         # raw_text class: ssrcss-18snukc-RichTextContainer e5tfeyi1
         # publish_date data-testid: timestamp
         # url
-        self.article_hrefs = list(set(self.article_hrefs))
+        self.article_hrefs = list(set(self.article_hrefs))[::-1]
         for article_index, article_url in enumerate(tqdm(self.article_hrefs)):
             if "news/av/" in str(article_url):
                 print(f"[{self.__class__.__name__}] video article found, skipping")
                 continue
             if article_url not in self.disallowed_urls:
-                html = requests.get(article_url).text
+                html = requests.get(article_url).content
                 soup = BeautifulSoup(html, "html.parser")
                 # title
                 try:
@@ -155,7 +155,7 @@ class BBCNewsScraper(NewsScraper):
                 # raw_text
                 try:
                     raw_text = soup.find_all(class_="ssrcss-18snukc-RichTextContainer e5tfeyi1")
-                    raw_text = "".join([str(raw_text_.text.strip()) + " " for raw_text_ in raw_text])
+                    raw_text = "".join([str(raw_text_.text) + " " for raw_text_ in raw_text])
                 except:
                     raw_text = ""
                 # author
