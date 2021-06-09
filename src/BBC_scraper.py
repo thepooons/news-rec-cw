@@ -122,7 +122,6 @@ class BBCNewsScraper(NewsScraper):
                 # author
                 try:
                     author = soup.find(class_="ssrcss-1pjc44v-Contributor e5xb54n2").text
-                    author = author[len("By "):]
                 except:
                     author = "bbc"
                 # publish_date
