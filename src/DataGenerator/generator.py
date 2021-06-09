@@ -1,7 +1,6 @@
-import scipy
 import numpy as np
 import pandas as pd
-
+import os
 
 class ClickStreamGen(object):
     """
@@ -66,10 +65,11 @@ class ClickStreamGen(object):
                 clicks_curr_user = np.random.binomial(
                     n=1, p=rand_aspect, size=10)
                 article_click_data.extend(clicks_curr_user)
-
+                
         # Assert
-        assert len(article_click_data) == self.total_sess * 10, "Error Click Data Shape Mismatch %d -- %d" % (len(article_click_data),
-                                                                                                              self.total_sess * 10)
+        assert len(article_click_data) == self.total_sess * 10, \
+            "Error Click Data Shape Mismatch %d -- %d" % (len(article_click_data),
+                                                          self.total_sess * 10)
 
         # Return the data
         return article_click_data
@@ -86,14 +86,12 @@ class ClickStreamGen(object):
         for i in range(len(article_click_data)):
             # If clicked
             if article_click_data[i] == 1:
-                # Make a choice value
-                rand_aspect = np.random.rand(1)[0]
-
-                # Add noise
-                if rand_aspect > 0.8:
-                    time_spent_all[i] = np.random.poisson(lam=150, size=(1))[0]
-                else:
-                    time_spent_all[i] = np.random.poisson(lam=20, size=(1))[0]
+                random_lam = np.random.choice(
+                    a=[5, 20, 50, 100, 150, 200, 300, 500],
+                    size=1,
+                    p=[0.33, 0.2, 0.1, 0.1, 0.08, 0.07, 0.06, 0.06]
+                )
+                time_spent_all[i] = np.random.poisson(lam=random_lam, size=(1))[0]
 
         # Return
         return article_click_data, time_spent_all
@@ -128,11 +126,12 @@ class ClickStreamGen(object):
         }
         for name_one, col_one in l_i.items():
             for name_two, col_two in l_i.items():
-                assert len(col_one) == len(col_two), "Error Shape Mismatch : %s | %d -- %s | %d" % (name_one,
-                                                                                                    len(
-                                                                                                        col_one),
-                                                                                                    name_two,
-                                                                                                    len(col_two))
+                assert len(col_one) == len(col_two), \
+                    "Error Shape Mismatch : %s | %d -- %s | %d" % (name_one,
+                                                                   len(
+                                                                   col_one),
+                                                                   name_two,
+                                                                   len(col_two))
 
         # Create dataframe
         data_frame = pd.DataFrame({
@@ -145,18 +144,19 @@ class ClickStreamGen(object):
         })
 
         # Convert click to binary Y/N from 1, 0
-        data_frame["click"] = data_frame["click"].astype(
-            int).map({0: "No", 1: "Yes"})
+        data_frame["click"] = data_frame["click"].astype(int)
 
         # Save the dataframe
-        data_frame.to_csv("ClickDataPhaseI.csv", index=False)
+        if not(os.path.exists("data/generated")):
+            os.mkdir("data/generated")
+        data_frame.to_csv("data/generated/ClickDataPhaseI.csv", index=False)
 
         # Return
         return data_frame
 
-
-# Make an instance and create data
-TOTAL_USER = 1000
-TOTAL_ARTICLES = 150000
-inst = ClickStreamGen(total_art=TOTAL_ARTICLES, total_user=TOTAL_USER)
-inst._make_dataframe().head(20)
+if __name__ == "__main__":
+    # Make an instance and create data
+    TOTAL_USER = 1000
+    TOTAL_ARTICLES = 150000
+    inst = ClickStreamGen(total_art=TOTAL_ARTICLES, total_user=TOTAL_USER)
+    inst._make_dataframe()
