@@ -1,7 +1,7 @@
 import pandas as pd
 
-class ValidationSplit(object):
-    """validation split class"""
+class TrainTestSplit(object):
+    """train-test split class"""
     def __init__(self, clickstream_data_path):
         self.data = pd.read_csv(clickstream_data_path)
 
