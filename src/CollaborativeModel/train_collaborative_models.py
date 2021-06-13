@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import surprise
+from collaborative_dataset import SurpriseDataset
 
 
 class CollaborativeModelTrain(object):
