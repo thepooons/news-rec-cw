@@ -75,16 +75,3 @@ class Evaluate(object):
             )
         }
         return user_eval_report
-
-if __name__ == "__main__":
-    train_data = pd.read_csv("./data/generated/train_clickstream.csv")
-    test_data = pd.read_csv("./data/generated/test_clickstream.csv")
-    test_users = np.unique(test_data.loc[:, "user_id"])
-    recommendation_lists = {i: np.arange(7_900) for i in [3, 5, 2, 1]}
-    evaluate = Evaluate(
-        train_data=train_data,
-        test_data=test_data,
-        recommendation_lists=recommendation_lists
-    )
-
-    evaluate.generate_eval_report()
