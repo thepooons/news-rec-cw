@@ -10,7 +10,8 @@ class Evaluate(object):
         self,
         train_data: pd.DataFrame,
         test_data: pd.DataFrame,
-        recommendation_lists: dict
+        recommendation_lists: dict,
+        
     ):
         self.train_data = train_data
         self.test_data = test_data
