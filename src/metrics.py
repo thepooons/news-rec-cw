@@ -1,4 +1,7 @@
 import numpy as np
+from sklearn.metrics import mean_squared_error
+import pandas as pd
+
 
 class Metrics(object):
     """Metrics class
@@ -19,6 +22,17 @@ class Metrics(object):
         for item in negative_item_list:
             arhr_.append(list(recommendation_list).index(item) / len(recommendation_list))
         return np.mean(arhr_)
+        
+    @staticmethod
+    def RMSE(
+        test_data_predictions: pd.DataFrame,
+        test_data: pd.DataFrame
+    ):
+        rmse = np.sqrt(mean_squared_error(
+            y_true=test_data.loc[:, "time_spent"],
+            y_pred=test_data_predictions.loc[:, "time_spent"]
+        ))
+        return rmse
         
     @staticmethod
     def precision_at_k(
