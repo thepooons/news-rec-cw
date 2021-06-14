@@ -4,7 +4,7 @@ import operator
 import math
 import os
 from collections import defaultdict
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 
 class ClickStreamGen(object):
@@ -231,8 +231,7 @@ class ClickStreamGen(object):
 
 if __name__ == "__main__":
     # Load the data
-    cluster_data = pd.read_csv(
-        "../input/bbc-toi-yahoo-news-statsfeatures/bbc_toi_yahoo_news_clustered.csv")
+    cluster_data = pd.read_csv("data/common/bbc_toi_yahoo_news_clustered.csv")
     # Make a default dict to store dictionaries
     c_data = defaultdict(list)
 
