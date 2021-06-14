@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 import pandas as pd
 
-
 class Metrics(object):
     """Metrics class
     has:
