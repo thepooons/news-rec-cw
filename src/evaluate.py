@@ -35,7 +35,7 @@ class Evaluate(object):
 
         # 1. for each user in `self.recommendation_lists`:
         for user_id in tqdm(self.recommendation_lists.keys()):
-            user_data = self.test_data.loc[self.test_data.loc[:, "user_id"] == user_id]
+            user_data = self.train_data.loc[self.train_data.loc[:, "user_id"] == user_id]
             user_average_time_spent = np.mean(user_data.loc[:, "time_spent"])
 
             # 1.1 distinguish positive and negative user-item interactions
