@@ -1,14 +1,15 @@
 import pandas as pd
 from tqdm import tqdm
+import yaml
 import numpy as np
 tqdm.pandas()
 
 class DataManager(object):
     """Data Manager class"""
     def __init__(self, clickstream_data_path, article_vectors_data_path):
-        self.data = pd.read_csv(clickstream_data_path) # data\generated\ClickDataPhaseI.csv
-        self.article_vectors = pd.read_csv(article_vectors_data_path) # bbc_toi_yahoo_news_clustered_vectored.csv
-
+        self.data = pd.read_csv(clickstream_data_path) 
+        self.article_vectors = pd.read_csv(article_vectors_data_path) 
+        
     def merge_article_vectors(self):
         def get_vector(article_id, article_vectors, vector_columns):
             article_vector = article_vectors.loc[
@@ -42,7 +43,7 @@ class DataManager(object):
         train_data = pd.DataFrame(columns=self.data.columns)
         test_data  = pd.DataFrame(columns=self.data.columns)
 
-        for user_data in tqdm(self.data.groupby("user_id")):
+        for user_data in tqdm(self.data.groupby("user_id"), desc="Train-Test Split"):
             num_sessions = len(user_data[1].groupby("session_id"))
             train_test_split_index = int(num_sessions * (1 - test_fraction)) # 🧠
             for session_data in user_data[1].groupby("session_id"):
@@ -55,10 +56,14 @@ class DataManager(object):
         test_data.to_csv("data/generated/test_clickstream.csv", index=False)
 
 if __name__ == "__main__":
+    # read the configuration
+    with open("config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
     dm = DataManager(
-        clickstream_data_path="data/generated/ClickDataPhaseI.csv",
-        article_vectors_data_path="data/common/bbc_toi_yahoo_news_clustered_vectored.csv"
+        clickstream_data_path=config["clickstream_data_path"],
+        article_vectors_data_path=config["clustered_vectorized_data_path"]
     )
 
     dm.merge_article_vectors()
-    dm.train_test_split(test_fraction=0.2)
+    dm.train_test_split(test_fraction=config["test_fraction"])

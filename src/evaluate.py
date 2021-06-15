@@ -1,5 +1,5 @@
-from metrics import Metrics
-from utils import create_logger
+from src.metrics import Metrics
+from src.utils import create_logger
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -11,12 +11,10 @@ class Evaluate(object):
         train_data: pd.DataFrame,
         test_data: pd.DataFrame,
         recommendation_lists: dict,
-        test_data_predictions: pd.DataFrame
     ):
         self.train_data = train_data
         self.test_data = test_data
         self.recommendation_lists = recommendation_lists
-        self.test_data_predictions = test_data_predictions
         self.logger = create_logger(self.__class__.__name__)
 
     def generate_eval_report(self,):
@@ -28,7 +26,6 @@ class Evaluate(object):
         """
         eval_report = {
             "ARHR": [],
-            "RMSE": [],
             "Precision@k": [],
             "Recall@k": [],
         }
@@ -41,14 +38,10 @@ class Evaluate(object):
             # 1.1 distinguish positive and negative user-item interactions
             negative_item_list = user_data.loc[user_data.loc[:, "time_spent"] < user_average_time_spent, "article_id"]
             positive_item_list = user_data.loc[user_data.loc[:, "time_spent"] >= user_average_time_spent, "article_id"]
-            recommendation_list = self.recommendation_lists[user_id]
-            test_data_predictions = self.test_data_predictions.loc[self.test_data_predictions.loc[:, "user_id"] == user_id]
-            test_data = self.test_data.loc[self.test_data.loc[:, "user_id"] == user_id]
+            recommendation_list = self.recommendation_lists[user_id][0]["article_id"].values
             
             # 1.2 log metrics
             user_eval_report = Evaluate.evaluate_user(
-                test_data_predictions=test_data_predictions,
-                test_data=test_data,
                 recommendation_list=recommendation_list,
                 positive_item_list=positive_item_list,
                 negative_item_list=negative_item_list,
@@ -63,8 +56,6 @@ class Evaluate(object):
 
     @staticmethod
     def evaluate_user(
-        test_data_predictions,
-        test_data,
         recommendation_list,
         positive_item_list,
         negative_item_list
@@ -74,10 +65,6 @@ class Evaluate(object):
                 recommendation_list=recommendation_list,
                 positive_item_list=positive_item_list,
                 negative_item_list=negative_item_list
-            ),
-            "RMSE": Metrics.RMSE(
-                test_data_predictions=test_data_predictions,
-                test_data=test_data
             ),
             "Precision@k": Metrics.precision_at_k(
                 recommendation_list=recommendation_list,

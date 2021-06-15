@@ -5,13 +5,12 @@ import math
 import os
 from collections import defaultdict
 from tqdm import tqdm
-
+import yaml
 
 class ClickStreamGen(object):
     """
     Creates the Click Stream Data
     """
-
     def __init__(self, total_art, total_user, num_clusters, cluster_data, alpha=0.04):
         # Initialize the variables
         self.total_art = total_art
@@ -53,7 +52,11 @@ class ClickStreamGen(object):
         article_click_data = []
 
         # Start loop
-        for z in tqdm(range(self.total_user), total=self.total_user):
+        for z in tqdm(
+            range(self.total_user), 
+            total=self.total_user, 
+            desc="Generating `article_id`s"
+        ):
             # Initially original probabilites
             selection_prob = {i: (1 / (self.num_clusters))
                               for i in range(self.num_clusters)}
@@ -223,15 +226,19 @@ class ClickStreamGen(object):
         # Save the dataframe
         if not(os.path.exists("data/generated")):
             os.mkdir("data/generated")
-        data_frame.to_csv("data/generated/ClickDataPhaseI.csv", index=False)
+        data_frame.to_csv("data/generated/clickstream.csv", index=False)
 
         # Return
         return data_frame
 
 
 if __name__ == "__main__":
+    # read the configuration
+    with open("config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
     # Load the data
-    cluster_data = pd.read_csv("data/common/bbc_toi_yahoo_news_clustered.csv")
+    cluster_data = pd.read_csv(config["clustered_vectorized_data_path"])
     # Make a default dict to store dictionaries
     c_data = defaultdict(list)
 
@@ -240,10 +247,12 @@ if __name__ == "__main__":
         c_data[data["cluster_id"]].append(data["id"] + 1)
 
     # Make an instance and create data
-    TOTAL_USER = 1000
-    TOTAL_ARTICLES = 8000
-    inst = ClickStreamGen(total_art=TOTAL_ARTICLES, total_user=TOTAL_USER,
-                          num_clusters=len(c_data),
-                          cluster_data=c_data, alpha=0.02)
+    inst = ClickStreamGen(
+        total_art=config["total_articles"], 
+        total_user=config["total_users"],
+        num_clusters=len(c_data),
+        cluster_data=c_data,
+        alpha=0.02
+    )
 
     data_content_collab = inst._make_dataframe()
