@@ -11,6 +11,17 @@ from tqdm import tqdm
 
 
 def scrape_links(links_to_scrape, link_type="one", attribute_chosen="article-body"):
+    """
+    The link collected by scraped pages
+
+    Args:
+        link_list (list): All the links to scrape
+
+        sleep_duration (float): Sleep in between scrapes
+
+    Returns:
+        [tuple]: heading, content
+    """
     # Placeholders
     list_heading = []
     list_content = []
