@@ -3,3 +3,5 @@ data
 __pycache__
 *.exe
 logs
+DEVNOTES.md
+news-rec-cw_class_arch.pdf

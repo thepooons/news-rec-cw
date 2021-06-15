@@ -2,8 +2,7 @@
 News Recommendation Coursework by Puneet Singh and Karanjot Singh.
 
 ## How To Run 
-- [optional but recommended] Create an `Anaconda` or `venv` virtual environment 
-- Install all the dependencies using `pip` or `conda` from the `requirements.txt` 
+- Install all the dependencies using `pip install -r requirements.txt` or `conda env create -f news_env.yml`
 - Run the `src/news_scraping/*.py` scripts to scrape news articles from the following websites:
     - BBC News: `src/news_scraping/BBC_scraper.py`
     - Times Of India News: `src/news_scraping/TOI_scraper.py`
