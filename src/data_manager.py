@@ -11,6 +11,8 @@ class DataManager(object):
         self.article_vectors = pd.read_csv(article_vectors_data_path) 
         
     def merge_article_vectors(self):
+        """adds columns of new heading and content text GloVe vectors
+        """
         def get_vector(article_id, article_vectors, vector_columns):
             article_vector = article_vectors.loc[
                 article_vectors.loc[:, "article_id"] == article_id,
@@ -35,9 +37,13 @@ class DataManager(object):
         self.data = pd.concat(objs=[self.data, article_vectors_], axis=1)
 
     def train_test_split(self, test_fraction):
-        """does:
-            1. split the data into train and test data
-            2. return train and test data
+        """1. split the data into train and test data
+           2. return train and test data
+        
+
+        Args:
+            test_fraction (float): fraction of all the data which will
+             be hold out for validating recommender system
         """
         train_data = pd.DataFrame(columns=self.data.columns)
         test_data  = pd.DataFrame(columns=self.data.columns)

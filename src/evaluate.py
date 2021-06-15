@@ -61,6 +61,8 @@ class Evaluate(object):
         positive_item_list,
         negative_item_list
     ):
+        """generates an evaluation report for one user
+        """
         user_eval_report = {
             "ARHR": Metrics.ARHR(
                 recommendation_list=recommendation_list,

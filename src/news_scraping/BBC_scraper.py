@@ -6,7 +6,7 @@ from tqdm import tqdm
 from datetime import datetime
 from time import sleep
 import requests
-from scraper_ import NewsScraper
+from src.news_scraping.scraper_ import NewsScraper
 
 """Scraping News"""
 
