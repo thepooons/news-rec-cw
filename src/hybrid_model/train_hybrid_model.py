@@ -20,7 +20,9 @@ class TrainHybridModel(object):
         task_type (string): Type of task chosen evaluation | api
     """
 
-    def __init__(self, model_obj, train_data, test_data, save_path, task_type="evaluation"):
+    def __init__(
+        self, model_obj, train_data, test_data, save_path, task_type="evaluation"
+    ):
         # Initialize the instance variables
         self.task_type = task_type
         self.train_data = train_data
@@ -30,7 +32,7 @@ class TrainHybridModel(object):
 
     def train_model(self, batch_size, epochs, verbose=False):
         """
-        Train the mode and saves it 
+        Train the mode and saves it
 
         Args:
             batch_size (int): The batch size chosen during model training
@@ -58,7 +60,16 @@ class TrainHybridModel(object):
             # Start training on full data
             if self.test_data is not None:
                 merged_data = pd.concat(
-                    [self.train_data[cols_article_data + ["click", "time_spent", "user_id"]], self.test_data[cols_article_data + ["click", "time_spent", "user_id"]]], axis=0)
+                    [
+                        self.train_data[
+                            cols_article_data + ["click", "time_spent", "user_id"]
+                        ],
+                        self.test_data[
+                            cols_article_data + ["click", "time_spent", "user_id"]
+                        ],
+                    ],
+                    axis=0,
+                )
             else:
                 merged_data = self.train_data
 
@@ -68,14 +79,12 @@ class TrainHybridModel(object):
             target_data = merged_data["time_spent"] * merged_data["click"]
 
             # Collect the required features and create the dataset
-            train_dataset = tf.data.Dataset.from_tensor_slices(({"input_1": user_data,
-                                                                 "input_2": article_data},
-                                                                target_data.values)).batch(batch_size)
+            train_dataset = tf.data.Dataset.from_tensor_slices(
+                ({"input_1": user_data, "input_2": article_data}, target_data.values)
+            ).batch(batch_size)
 
             # Train the model
-            history = hybrid_model.fit(train_dataset,
-                                       epochs=epochs,
-                                       verbose=verbose)
+            history = hybrid_model.fit(train_dataset, epochs=epochs, verbose=verbose)
 
             # Save the model
             hybrid_model.save(path)
@@ -89,27 +98,33 @@ class TrainHybridModel(object):
             # Collect the data
             article_data_train = self.train_data[cols_article_data]
             user_data_train = self.train_data[cols_user_data] - 1
-            target_data_train = self.train_data["time_spent"] * \
-                self.train_data["click"]
+            target_data_train = self.train_data["time_spent"] * self.train_data["click"]
 
             article_data_test = self.test_data[cols_article_data]
             user_data_test = self.test_data[cols_user_data] - 1
-            target_data_test = self.test_data["time_spent"] * \
-                self.test_data["click"]
+            target_data_test = self.test_data["time_spent"] * self.test_data["click"]
 
             # Collect the required features and create the dataset
-            train_dataset = tf.data.Dataset.from_tensor_slices(({"input_1": user_data_train,
-                                                                 "input_2": article_data_train},
-                                                                target_data_train.values)).batch(batch_size)
-            test_dataset = tf.data.Dataset.from_tensor_slices(({"input_1": user_data_test,
-                                                                "input_2": article_data_test},
-                                                               target_data_test.values)).batch(batch_size)
+            train_dataset = tf.data.Dataset.from_tensor_slices(
+                (
+                    {"input_1": user_data_train, "input_2": article_data_train},
+                    target_data_train.values,
+                )
+            ).batch(batch_size)
+            test_dataset = tf.data.Dataset.from_tensor_slices(
+                (
+                    {"input_1": user_data_test, "input_2": article_data_test},
+                    target_data_test.values,
+                )
+            ).batch(batch_size)
 
             # Train the model
-            history = hybrid_model.fit(train_dataset,
-                                       validation_data=test_dataset,
-                                       epochs=epochs,
-                                       verbose=verbose)
+            history = hybrid_model.fit(
+                train_dataset,
+                validation_data=test_dataset,
+                epochs=epochs,
+                verbose=verbose,
+            )
 
             # Save the model
             hybrid_model.save(path)
