@@ -6,7 +6,18 @@ import tensorflow.keras as keras
 
 class MfHybridModel(object):
     """
-    Returns a model based
+    Class for hybrid model object
+
+    Args:
+        num_user (int): The total number of users in the full data
+
+        item_dim (int): The dimension of item representation. Default is 50
+
+        comb_type (string): The type of combination layer to user add | concat. Default is concat
+
+        embed_dim (int): The size of embedding layers. Defaut is 100
+
+        lr (float): The learning for the model
     """
 
     def __init__(self, num_user, item_dim=50, comb_type="concat", embed_dim=100, lr=0.0001):
