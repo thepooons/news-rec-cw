@@ -35,8 +35,7 @@ def collect_data_via_links(link_list, sleep_duration):
         get_page = req.get(link)
         if get_page.status_code == 200:
             content = get_page.content
-            soup = BeautifulSoup(
-                markup=content, features="lxml")
+            soup = BeautifulSoup(markup=content, features="lxml")
 
             # Get body and heading
             flag = False
@@ -55,8 +54,9 @@ def collect_data_via_links(link_list, sleep_duration):
                     heading = title.split("|")[0].strip()
                     list_heading.append(heading)
 
-                bar.set_description("%s, %s, %s" % (
-                    heading[:10], len(list_body), len(list_heading)))
+                bar.set_description(
+                    "%s, %s, %s" % (heading[:10], len(list_body), len(list_heading))
+                )
         else:
             continue
 
@@ -105,8 +105,7 @@ def collect_soup(link_to_collect):
     # Check status code
     if get_page.status_code == 200:
         content = get_page.content
-        soup = BeautifulSoup(
-            markup=content, features="lxml")
+        soup = BeautifulSoup(markup=content, features="lxml")
 
         # Return the soup
         return soup
@@ -142,23 +141,89 @@ class TOI_SCRAPER(object):
         # Collect the tag
         links_all = []
         link_global = {
-            "https://timesofindia.indiatimes.com/city": [True, "ul", {"class": "cvs_wdt clearfix"}],
-            "https://timesofindia.indiatimes.com/india": [True, "div", {"id": "c_wdt_list_1"}],
-            "https://timesofindia.indiatimes.com/world/rest-of-world": [True, "div", {"id": "c_010205"}],
-            "https://timesofindia.indiatimes.com/sports/cricket": [False, "div", {"class": "top-newslist small"}],
-            "https://timesofindia.indiatimes.com/sports/football": [False, "div", {"class": "top-newslist small"}],
-            "https://timesofindia.indiatimes.com/sports/hockey": [False, "div", {"class": "top-newslist small js-main-news-list"}],
-            "https://timesofindia.indiatimes.com/sports/tennis": [False, "div", {"class": "top-newslist small"}],
-            "https://timesofindia.indiatimes.com/sports/wwe": [False, "div", {"class": "top-newslist small js-main-news-list"}],
-            "https://timesofindia.indiatimes.com/sports/nfl": [False, "div", {"class": "top-newslist small js-main-news-list"}],
-            "https://timesofindia.indiatimes.com/business/economy": [True, {"id": "c_articlelist_stories_1"}],
-            "https://timesofindia.indiatimes.com/business/international-business": [True, {"id": "c_articlelist_stories_2"}],
-            "https://timesofindia.indiatimes.com/business/cryptocurrency": [False, "div",  {"id": "c_articlelist_stories_2"}],
-            "https://timesofindia.indiatimes.com/business/real-estate": [True, "div",  {"id": "c_articlelist_stories_1"}],
-            "https://timesofindia.indiatimes.com/business/telecom": [True, "div", {"id": "c_articlelist_stories_1"}],
-            "https://timesofindia.indiatimes.com/business/aviation": [True, "div",  {"id": "c_articlelist_stories_1"}],
-            "https://timesofindia.indiatimes.com/business/personal-finance": [True, "div",  {"id": "c_articlelist_stories_1"}],
-            "https://timesofindia.indiatimes.com/business/corporate": [True, "div", {"id": "c_articlelist_stories_1"}]
+            "https://timesofindia.indiatimes.com/city": [
+                True,
+                "ul",
+                {"class": "cvs_wdt clearfix"},
+            ],
+            "https://timesofindia.indiatimes.com/india": [
+                True,
+                "div",
+                {"id": "c_wdt_list_1"},
+            ],
+            "https://timesofindia.indiatimes.com/world/rest-of-world": [
+                True,
+                "div",
+                {"id": "c_010205"},
+            ],
+            "https://timesofindia.indiatimes.com/sports/cricket": [
+                False,
+                "div",
+                {"class": "top-newslist small"},
+            ],
+            "https://timesofindia.indiatimes.com/sports/football": [
+                False,
+                "div",
+                {"class": "top-newslist small"},
+            ],
+            "https://timesofindia.indiatimes.com/sports/hockey": [
+                False,
+                "div",
+                {"class": "top-newslist small js-main-news-list"},
+            ],
+            "https://timesofindia.indiatimes.com/sports/tennis": [
+                False,
+                "div",
+                {"class": "top-newslist small"},
+            ],
+            "https://timesofindia.indiatimes.com/sports/wwe": [
+                False,
+                "div",
+                {"class": "top-newslist small js-main-news-list"},
+            ],
+            "https://timesofindia.indiatimes.com/sports/nfl": [
+                False,
+                "div",
+                {"class": "top-newslist small js-main-news-list"},
+            ],
+            "https://timesofindia.indiatimes.com/business/economy": [
+                True,
+                {"id": "c_articlelist_stories_1"},
+            ],
+            "https://timesofindia.indiatimes.com/business/international-business": [
+                True,
+                {"id": "c_articlelist_stories_2"},
+            ],
+            "https://timesofindia.indiatimes.com/business/cryptocurrency": [
+                False,
+                "div",
+                {"id": "c_articlelist_stories_2"},
+            ],
+            "https://timesofindia.indiatimes.com/business/real-estate": [
+                True,
+                "div",
+                {"id": "c_articlelist_stories_1"},
+            ],
+            "https://timesofindia.indiatimes.com/business/telecom": [
+                True,
+                "div",
+                {"id": "c_articlelist_stories_1"},
+            ],
+            "https://timesofindia.indiatimes.com/business/aviation": [
+                True,
+                "div",
+                {"id": "c_articlelist_stories_1"},
+            ],
+            "https://timesofindia.indiatimes.com/business/personal-finance": [
+                True,
+                "div",
+                {"id": "c_articlelist_stories_1"},
+            ],
+            "https://timesofindia.indiatimes.com/business/corporate": [
+                True,
+                "div",
+                {"id": "c_articlelist_stories_1"},
+            ],
         }
 
         # Collect the links
@@ -179,14 +244,17 @@ class TOI_SCRAPER(object):
                     soup = collect_soup(link_to_collect=collect_link)
 
                     # Start script
-                    links_curr = collect_links_consistent(soup=soup, attrs=attribute[-1],
-                                                          link_to_collect=link_to_collect, element_tag=attribute[0])
+                    links_curr = collect_links_consistent(
+                        soup=soup,
+                        attrs=attribute[-1],
+                        link_to_collect=link_to_collect,
+                        element_tag=attribute[0],
+                    )
                     len_curr += len(links_curr)
                     links_all.extend(links_curr)
 
                 # Printer
-                print("%s : %d -- %d" %
-                      (link_to_collect, len_curr, len(links_all)))
+                print("%s : %d -- %d" % (link_to_collect, len_curr, len(links_all)))
 
             else:
 
@@ -194,41 +262,50 @@ class TOI_SCRAPER(object):
                 soup = collect_soup(link_to_collect=link_to_collect)
 
                 # Start script
-                links_curr = collect_links_consistent(soup=soup, attrs=attribute[-1],
-                                                      link_to_collect=link_to_collect, element_tag=attribute[0])
+                links_curr = collect_links_consistent(
+                    soup=soup,
+                    attrs=attribute[-1],
+                    link_to_collect=link_to_collect,
+                    element_tag=attribute[0],
+                )
                 links_all.extend(links_curr)
 
                 # Printer
-                print("%s : %d -- %d" %
-                      (link_to_collect, len(links_curr), len(links_all)))
+                print(
+                    "%s : %d -- %d" % (link_to_collect, len(links_curr), len(links_all))
+                )
 
             # Sleep here as well
             time.sleep(1)
 
         # Scrape collected links
         list_heading, list_body = collect_data_via_links(
-            link_list=links_all, sleep_duration=self.sleep_duration)
+            link_list=links_all, sleep_duration=self.sleep_duration
+        )
 
         # Return
         return list_heading, list_body
 
     def make_dataframe_combined(self):
         # Loading all the fucntions
-        list_headings_all, list_body_all = self._scraper(
-            total_pages=self.total_pages)
+        list_headings_all, list_body_all = self._scraper(total_pages=self.total_pages)
 
         assert len(list_headings_all) == len(
-            list_body_all), "Error Heading and body mismatch %d-%d" % (len(list_headings_all), len(list_body_all))
+            list_body_all
+        ), "Error Heading and body mismatch %d-%d" % (
+            len(list_headings_all),
+            len(list_body_all),
+        )
 
         # Make DataFrame
         print("Creating dataframe.....")
-        global_df = pd.DataFrame({
-            "heading": list_headings_all,
-            "content": list_body_all
-        })
+        global_df = pd.DataFrame(
+            {"heading": list_headings_all, "content": list_body_all}
+        )
 
-        global_df.to_csv("TOI_DATA_%s.csv" %
-                         (datetime.datetime.now().date()), index=False)
+        global_df.to_csv(
+            "TOI_DATA_%s.csv" % (datetime.datetime.now().date()), index=False
+        )
 
 
 SLEEP_DURATION = 0.1
