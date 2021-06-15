@@ -8,6 +8,17 @@ import datetime
 
 
 def collect_data_via_links(link_list, sleep_duration):
+    """
+    The link collected by scraped pages
+
+    Args:
+        link_list (list): All the links to scrape
+
+        sleep_duration (float): Sleep in between scrapes
+
+    Returns:
+        [tuple]: heading, content
+    """
     # Scrape collected links
     list_heading = []
     list_body = []
@@ -54,6 +65,21 @@ def collect_data_via_links(link_list, sleep_duration):
 
 
 def collect_links_consistent(soup, attrs, link_to_collect, element_tag="div"):
+    """
+    Collect links from sraped page
+
+    Args:
+        soup (bs4.soup): The soup of page
+
+        attrs (dict): Pages tags to look for
+
+        link_to_collect ([type]): [description]
+
+        element_tag (str, optional): Which tag to look for. Defaults to "div".
+
+    Returns:
+        [list]: Scraped links
+    """
     # Placeholder
     links = []
     for tag in soup.findAll(element_tag, attrs=attrs):
@@ -67,6 +93,12 @@ def collect_links_consistent(soup, attrs, link_to_collect, element_tag="div"):
 
 
 def collect_soup(link_to_collect):
+    """
+    Collects the soup
+
+    Args:
+        link_to_collect (string): Link to scrape
+    """
     # Make Request
     get_page = req.get(link_to_collect)
 
@@ -86,9 +118,8 @@ def collect_soup(link_to_collect):
 
 class TOI_SCRAPER(object):
     """
-    Srapes all of the TOI website top tags and collects
-    1. News Heading
-    2. News Body
+    Scrape all the pages of Times of India
+
     """
 
     def __init__(self, sleep_duration, total_pages):
@@ -97,6 +128,14 @@ class TOI_SCRAPER(object):
         self.total_pages = total_pages
 
     def _scraper(self, total_pages):
+        """
+        The main scraper function
+
+        Args:
+            total_pages (int): Total pages to scrape
+        Returns:
+            [tuple]: List of headings and corresponding body of text
+        """
         # Make some assertions
         assert total_pages > 1, "Total Pages collected will be zero"
 

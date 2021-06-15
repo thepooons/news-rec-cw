@@ -6,20 +6,48 @@ import tensorflow.keras as keras
 
 class TrainHybridModel(object):
     """
-    Train for both API and evaluation
+    Trains the model for both API and Evaluation Task
+
+    Args:
+        model_obj (tf.keras.models.Model): A model object created using tensorflow
+
+        train_data (pd.DataFrame): DataFrame containing training data
+
+        test_data (pd.DataFrame): DataFrame containing testing data
+
+        save_path (string): Global path to save trained weights
+
+        task_type (string): Type of task chosen evaluation | api
     """
 
-    def __init__(self, model_obj, train_data, test_data, task_type="evaluation"):
+    def __init__(self, model_obj, train_data, test_data, save_path, task_type="evaluation"):
         # Initialize the instance variables
         self.task_type = task_type
         self.train_data = train_data
         self.test_data = test_data
         self.model_obj = model_obj
+        self.save_path = save_path
 
     def train_model(self, batch_size, epochs, verbose=False):
+        """
+        Train the mode and saves it 
+
+        Args:
+            batch_size (int): The batch size chosen during model training
+
+            epochs (int): Number of epoch to train the model for
+
+            verbose (bool, optional): Print tenorflow training logs. Defaults to False.
+
+        Raises:
+            Exception: Rasies exception in case of Invalid task selection
+
+        Returns:
+            tf.keras.model.Model: Return the hybrid trained model trained during the current call
+        """
         # Fetch the model beforehand
         hybrid_model = self.model_obj
-        path = "weights/model_hybrid_%s.h5" % (self.task_type)
+        path = self.save_path + "model_hybrid_%s.h5" % (self.task_type)
 
         # Check type of task
         if self.task_type == "api":
