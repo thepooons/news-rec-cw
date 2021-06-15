@@ -28,6 +28,8 @@ class GlobalWrapper(object):
             os.mkdir("data/GloVe")
         if not(os.path.exists("logs")):
             os.mkdir("logs")
+        if not(os.path.exists("weights")):
+            os.mkdir("weights")
 
         # Make the initalize variables
         with open(config_path) as f:
