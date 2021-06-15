@@ -1,3 +1,7 @@
+# Text preprocessing
+glove_vectors_path: data/GloVe/vectors.txt # don't change
+raw_data_path: data/bbc_toi_yahoo_stats_feats.csv # dont't change
+
 # Clickstream data Generation
 clickstream_data_path: data/generated/clickstream.csv # don't change
 use_cached_clickstream: True
@@ -11,8 +15,8 @@ test_fraction: 0.2
 clustered_vectorized_data_path: data/common/bbc_toi_yahoo_news_clustered_vectored.csv # don't change
 
 # NeuMF config
-evaluate: True
 pretrained: False
+evaluate: True
 epochs: 2
 user_dimensions: 100
 learning_rate: 0.0001

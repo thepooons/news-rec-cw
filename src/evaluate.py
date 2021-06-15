@@ -11,11 +11,12 @@ class Evaluate(object):
         train_data: pd.DataFrame,
         test_data: pd.DataFrame,
         recommendation_lists: dict,
+        logger,
     ):
         self.train_data = train_data
         self.test_data = test_data
         self.recommendation_lists = recommendation_lists
-        self.logger = create_logger(self.__class__.__name__)
+        self.logger = logger
 
     def generate_eval_report(self,):
         """does:

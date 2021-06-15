@@ -1,6 +1,5 @@
 import pandas as pd
 import tensorflow as tf
-from src.data_manager import DataManager
 from src.evaluate import Evaluate
 from src.hybrid_model.model import MfHybridModel
 from src.hybrid_model.train_hybrid_model import TrainHybridModel
@@ -35,7 +34,7 @@ class GlobalWrapper(object):
         self.total_users             = config["total_users"]
         self.total_articles          = config["total_articles"]
         self.pretrained_weights_path = config["pretrained_weights_path"]
-        self.logger                  = create_logger()
+        self.logger                  = create_logger("kjkr-poons-news-recsys")
 
     def perform_all(
         self,   
@@ -162,11 +161,11 @@ class GlobalWrapper(object):
                     all_ids_data=self.mapper
                 )
 
-            print(dict_users)
             evaluation = Evaluate(
                 train_data=self.train_data,
                 test_data=self.test_data,
                 recommendation_lists=dict_users,
+                logger=self.logger
             )
             evaluation.generate_eval_report()
             return None

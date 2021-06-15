@@ -16,7 +16,7 @@ class Metrics(object):
     ):
         arhr_ = []
         for item in positive_item_list:
-            arhr_.append(1 / (list(recommendation_list).index(item)) + 1)
+            arhr_.append(1 / (list(recommendation_list).index(item) + 1))
         for item in negative_item_list:
             arhr_.append(list(recommendation_list).index(item) / len(recommendation_list))
         return np.mean(arhr_)

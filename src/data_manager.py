@@ -33,7 +33,6 @@ class DataManager(object):
         )
 
         self.data = pd.concat(objs=[self.data, article_vectors_], axis=1)
-        print("after adding vector data", self.data.columns)
 
     def train_test_split(self, test_fraction):
         """does:
