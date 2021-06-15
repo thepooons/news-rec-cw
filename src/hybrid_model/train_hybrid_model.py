@@ -19,7 +19,7 @@ class TrainHybridModel(object):
     def train_model(self, batch_size, epochs, verbose=False):
         # Fetch the model beforehand
         hybrid_model = self.model_obj
-        path = "model_hybrid_%s.h5" % (self.task_type)
+        path = "weights/model_hybrid_%s.h5" % (self.task_type)
 
         # Check type of task
         if self.task_type == "api":

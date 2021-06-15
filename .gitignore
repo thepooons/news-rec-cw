@@ -1,5 +1,7 @@
 .vscode
-data
 __pycache__
+data 
 *.exe
 logs
+DEVNOTES.md
+news-rec-cw_class_arch.pdf

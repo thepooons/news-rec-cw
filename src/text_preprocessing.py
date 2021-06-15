@@ -3,6 +3,7 @@ import pandas as pd
 import unicodedata
 import re
 from sklearn.cluster import KMeans
+import yaml
 
 def loadGloveModel(File):
     print("Loading Glove Model")
@@ -16,14 +17,16 @@ def loadGloveModel(File):
     print(len(gloveModel)," words loaded!")
     return gloveModel
 
-class CONFIG:
-    GLOVE_VECTORS_PATH = "../data/GloVe/vectors.txt"
-    RAW_DATA_PATH = "../data/bbc_toi_yahoo_stats_feats.csv"
-    VECTORED_DATA_PATH = "../data/common/bbc_toi_yahoo_news_clustered_vectored.csv"
-
 if __name__ == "__main__":
-    glove_vectors = loadGloveModel(CONFIG.GLOVE_VECTORS_PATH)
-    data = pd.read_csv(CONFIG.RAW_DATA_PATH)
+    with open("config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
+    GLOVE_VECTORS_PATH = config["glove_vectors_path"]
+    RAW_DATA_PATH = config["raw_data_path"]
+    VECTORED_DATA_PATH = config["clustered_vectorized_data_path"]
+
+    glove_vectors = loadGloveModel(GLOVE_VECTORS_PATH)
+    data = pd.read_csv(RAW_DATA_PATH)
     data = data.loc[:, ["heading", "content"]]
 
     headings_cleaned = []
@@ -72,11 +75,11 @@ if __name__ == "__main__":
     )
     kmeanModel.fit(vector_data)
 
-    data = pd.read_csv("../data/bbc_toi_yahoo_stats_feats.csv")
+    data = pd.read_csv(RAW_DATA_PATH)
     data.loc[:, "id"] = range(0, len(data))
     data.loc[:, "cluster_id"] = kmeanModel.labels_
     data.loc[:, [f"heading_{i}" for i in range(50)]] = vector_data.loc[:, [f"heading_{i}" for i in range(50)]]
     data.loc[:, [f"content_{i}" for i in range(50)]] = vector_data.loc[:, [f"content_{i}" for i in range(50)]]
     data.loc[:, "article_id"] = range(1, len(data) + 1)
 
-    data.to_csv(CONFIG.VECTORED_DATA_PATH, index=False)
+    data.to_csv(config["clustered_vectorized_data_path"], index=False)
