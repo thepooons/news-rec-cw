@@ -7,10 +7,12 @@ from collections import defaultdict
 from tqdm import tqdm
 import yaml
 
+
 class ClickStreamGen(object):
     """
     Creates the Click Stream Data
     """
+
     def __init__(self, total_art, total_user, num_clusters, cluster_data, alpha=0.04):
         # Initialize the variables
         self.total_art = total_art
@@ -23,8 +25,7 @@ class ClickStreamGen(object):
 
     def _generate_session_ids(self):
         # Generate the session ids
-        total_session_samples = np.random.poisson(
-            lam=10, size=(self.total_user))
+        total_session_samples = np.random.poisson(lam=10, size=(self.total_user))
         self.sample_count = total_session_samples
 
         # Placeholder for total sessions
@@ -53,28 +54,27 @@ class ClickStreamGen(object):
 
         # Start loop
         for z in tqdm(
-            range(self.total_user), 
-            total=self.total_user, 
-            desc="Generating `article_id`s"
+            range(self.total_user),
+            total=self.total_user,
+            desc="Generating `article_id`s",
         ):
             # Initially original probabilites
-            selection_prob = {i: (1 / (self.num_clusters))
-                              for i in range(self.num_clusters)}
+            selection_prob = {
+                i: (1 / (self.num_clusters)) for i in range(self.num_clusters)
+            }
 
             # Start loop and collect valeus from cluster
             for curr_sess in range(self.sample_count[z]):
                 # Generate the user click data
                 rand_aspect = np.random.rand(1)[0]
-                clicks_curr_user = np.random.binomial(
-                    n=1, p=rand_aspect, size=10)
+                clicks_curr_user = np.random.binomial(n=1, p=rand_aspect, size=10)
                 article_click_data.extend(clicks_curr_user)
 
                 # Handle count allotment
                 num_values_to_collect = [0] * self.num_clusters
                 for i in range(self.num_clusters):
                     # Make a choice
-                    num_values_to_collect[i] = int(
-                        math.ceil(selection_prob[i] * 10))
+                    num_values_to_collect[i] = int(math.ceil(selection_prob[i] * 10))
 
                     # Check if value has exceeded
                     if sum(num_values_to_collect) == 10:
@@ -85,8 +85,9 @@ class ClickStreamGen(object):
                         offset = sum(num_values_to_collect) - 10
 
                         # Make a choice again
-                        choice = np.argsort(num_values_to_collect).tolist()[
-                            ::-1][:offset]
+                        choice = np.argsort(num_values_to_collect).tolist()[::-1][
+                            :offset
+                        ]
 
                         # Reduce offset
                         for index in choice:
@@ -101,8 +102,7 @@ class ClickStreamGen(object):
 
                 if step_two > 0:
                     # Make a choice again
-                    choice = np.argsort(num_values_to_collect).tolist()[
-                        ::-1][:step_two]
+                    choice = np.argsort(num_values_to_collect).tolist()[::-1][:step_two]
 
                     # Reduce offset
                     for index in choice:
@@ -117,8 +117,11 @@ class ClickStreamGen(object):
                 # Append
                 for i in range(self.num_clusters):
                     # Append the collected ids
-                    current_ids.extend(np.random.choice(self.cluster_data[i],
-                                                        size=num_values_to_collect[i]).tolist())
+                    current_ids.extend(
+                        np.random.choice(
+                            self.cluster_data[i], size=num_values_to_collect[i]
+                        ).tolist()
+                    )
 
                     # Append the cluster value to which it belongs
                     cluster_mapper.extend([i] * num_values_to_collect[i])
@@ -130,14 +133,14 @@ class ClickStreamGen(object):
                         cluster_clicks[cluster_mapper[i]] += 1
 
                 # Update the values
-                pref_cluster = max(cluster_clicks.items(),
-                                   key=operator.itemgetter(1))[0]
+                pref_cluster = max(cluster_clicks.items(), key=operator.itemgetter(1))[
+                    0
+                ]
                 for k, v in selection_prob.items():
                     if k == pref_cluster:
                         selection_prob[k] += self.alpha
                     else:
-                        selection_prob[k] -= self.alpha / \
-                            (len(selection_prob) - 1)
+                        selection_prob[k] -= self.alpha / (len(selection_prob) - 1)
 
                 # Append
                 article_ids.extend(current_ids)
@@ -167,10 +170,9 @@ class ClickStreamGen(object):
                 random_lam = np.random.choice(
                     a=[5, 20, 50, 100, 150, 200, 300, 500],
                     size=1,
-                    p=[0.33, 0.2, 0.1, 0.1, 0.08, 0.07, 0.06, 0.06]
+                    p=[0.33, 0.2, 0.1, 0.1, 0.08, 0.07, 0.06, 0.06],
                 )
-                time_spent_all[i] = np.random.poisson(
-                    lam=random_lam, size=(1))[0]
+                time_spent_all[i] = np.random.poisson(lam=random_lam, size=(1))[0]
 
         # Return
         return article_click_data, time_spent_all, article_ids, session_ids
@@ -188,7 +190,12 @@ class ClickStreamGen(object):
 
     def _make_dataframe(self):
         # Collect all the components
-        article_click_data, time_spent_all, article_ids, session_ids = self._generate_time_spent()
+        (
+            article_click_data,
+            time_spent_all,
+            article_ids,
+            session_ids,
+        ) = self._generate_time_spent()
         article_rank = self._generate_article_rank()
         user_ids = self._generate_user_ids()
 
@@ -203,28 +210,32 @@ class ClickStreamGen(object):
         }
         for name_one, col_one in l_i.items():
             for name_two, col_two in l_i.items():
-                assert len(col_one) == len(col_two), \
-                    "Error Shape Mismatch : %s | %d -- %s | %d" % (name_one,
-                                                                   len(
-                                                                       col_one),
-                                                                   name_two,
-                                                                   len(col_two))
+                assert len(col_one) == len(
+                    col_two
+                ), "Error Shape Mismatch : %s | %d -- %s | %d" % (
+                    name_one,
+                    len(col_one),
+                    name_two,
+                    len(col_two),
+                )
 
         # Create dataframe
-        data_frame = pd.DataFrame({
-            "user_id": user_ids,
-            "session_id": session_ids,
-            "article_id": article_ids,
-            "article_rank": article_rank,
-            "click": article_click_data,
-            "time_spent": time_spent_all
-        })
+        data_frame = pd.DataFrame(
+            {
+                "user_id": user_ids,
+                "session_id": session_ids,
+                "article_id": article_ids,
+                "article_rank": article_rank,
+                "click": article_click_data,
+                "time_spent": time_spent_all,
+            }
+        )
 
         # Convert click to binary Y/N from 1, 0
         data_frame["click"] = data_frame["click"].astype(int)
 
         # Save the dataframe
-        if not(os.path.exists("data/generated")):
+        if not (os.path.exists("data/generated")):
             os.mkdir("data/generated")
         data_frame.to_csv("data/generated/clickstream.csv", index=False)
 
@@ -248,11 +259,11 @@ if __name__ == "__main__":
 
     # Make an instance and create data
     inst = ClickStreamGen(
-        total_art=config["total_articles"], 
+        total_art=config["total_articles"],
         total_user=config["total_users"],
         num_clusters=len(c_data),
         cluster_data=c_data,
-        alpha=0.02
+        alpha=0.02,
     )
 
     data_content_collab = inst._make_dataframe()

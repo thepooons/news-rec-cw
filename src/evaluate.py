@@ -4,8 +4,10 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+
 class Evaluate(object):
     """evaluation class"""
+
     def __init__(
         self,
         train_data: pd.DataFrame,
@@ -18,12 +20,14 @@ class Evaluate(object):
         self.recommendation_lists = recommendation_lists
         self.logger = logger
 
-    def generate_eval_report(self,):
+    def generate_eval_report(
+        self,
+    ):
         """does:
-            1. for each user in `self.recommendation_lists`:
-                1.1 distinguish positive and negative user-item interactions
-                1.2 log metrics
-            2. return eval report with metrics averaged over all the users
+        1. for each user in `self.recommendation_lists`:
+            1.1 distinguish positive and negative user-item interactions
+            1.2 log metrics
+        2. return eval report with metrics averaged over all the users
         """
         eval_report = {
             "ARHR": [],
@@ -33,14 +37,22 @@ class Evaluate(object):
 
         # 1. for each user in `self.recommendation_lists`:
         for user_id in tqdm(self.recommendation_lists.keys()):
-            user_data = self.train_data.loc[self.train_data.loc[:, "user_id"] == user_id]
+            user_data = self.train_data.loc[
+                self.train_data.loc[:, "user_id"] == user_id
+            ]
             user_average_time_spent = np.mean(user_data.loc[:, "time_spent"])
 
             # 1.1 distinguish positive and negative user-item interactions
-            negative_item_list = user_data.loc[user_data.loc[:, "time_spent"] < user_average_time_spent, "article_id"]
-            positive_item_list = user_data.loc[user_data.loc[:, "time_spent"] >= user_average_time_spent, "article_id"]
-            recommendation_list = self.recommendation_lists[user_id][0]["article_id"].values
-            
+            negative_item_list = user_data.loc[
+                user_data.loc[:, "time_spent"] < user_average_time_spent, "article_id"
+            ]
+            positive_item_list = user_data.loc[
+                user_data.loc[:, "time_spent"] >= user_average_time_spent, "article_id"
+            ]
+            recommendation_list = self.recommendation_lists[user_id][0][
+                "article_id"
+            ].values
+
             # 1.2 log metrics
             user_eval_report = Evaluate.evaluate_user(
                 recommendation_list=recommendation_list,
@@ -56,28 +68,23 @@ class Evaluate(object):
         self.logger.info(f"EVAL REPORT: {eval_report}")
 
     @staticmethod
-    def evaluate_user(
-        recommendation_list,
-        positive_item_list,
-        negative_item_list
-    ):
-        """generates an evaluation report for one user
-        """
+    def evaluate_user(recommendation_list, positive_item_list, negative_item_list):
+        """generates an evaluation report for one user"""
         user_eval_report = {
             "ARHR": Metrics.ARHR(
                 recommendation_list=recommendation_list,
                 positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list
+                negative_item_list=negative_item_list,
             ),
             "Precision@k": Metrics.precision_at_k(
                 recommendation_list=recommendation_list,
                 positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list
+                negative_item_list=negative_item_list,
             ),
             "Recall@k": Metrics.recall_at_k(
                 recommendation_list=recommendation_list,
                 positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list
-            )
+                negative_item_list=negative_item_list,
+            ),
         }
         return user_eval_report

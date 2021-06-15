@@ -9,7 +9,9 @@ from src.utils import create_logger
 from tqdm import tqdm
 import yaml
 import warnings
+
 warnings.simplefilter("ignore")
+
 
 class GlobalWrapper(object):
     """
@@ -17,55 +19,55 @@ class GlobalWrapper(object):
     """
 
     def __init__(self, config_path):
-        
-        if not(os.path.exists("data")):
+
+        if not (os.path.exists("data")):
             os.mkdir("data")
-        if not(os.path.exists("data/common")):
+        if not (os.path.exists("data/common")):
             os.mkdir("data/common")
-        if not(os.path.exists("data/generated")):
+        if not (os.path.exists("data/generated")):
             os.mkdir("data/generated")
-        if not(os.path.exists("data/GloVe")):
+        if not (os.path.exists("data/GloVe")):
             os.mkdir("data/GloVe")
-        if not(os.path.exists("logs")):
+        if not (os.path.exists("logs")):
             os.mkdir("logs")
-        if not(os.path.exists("weights")):
+        if not (os.path.exists("weights")):
             os.mkdir("weights")
 
         # Make the initalize variables
         with open(config_path) as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
-        
-        self.evaluate                = config["evaluate"]
-        self.train_data              = pd.read_csv(config["train_data_path"])
-        self.test_data               = pd.read_csv(config["test_data_path"])
-        self.mapper                  = pd.read_csv(config["clustered_vectorized_data_path"])
-        self.total_user              = config["total_users"]
-        self.epochs                  = config["epochs"]
-        self.user_dimensions         = config["user_dimensions"]
-        self.learning_rate           = config["learning_rate"]
-        self.comb_type               = config["comb_type"]
-        self.pretrained              = config["pretrained"]
-        self.batch_size              = config["batch_size"]
-        self.total_users             = config["total_users"]
-        self.total_articles          = config["total_articles"]
+
+        self.evaluate = config["evaluate"]
+        self.train_data = pd.read_csv(config["train_data_path"])
+        self.test_data = pd.read_csv(config["test_data_path"])
+        self.mapper = pd.read_csv(config["clustered_vectorized_data_path"])
+        self.total_user = config["total_users"]
+        self.epochs = config["epochs"]
+        self.user_dimensions = config["user_dimensions"]
+        self.learning_rate = config["learning_rate"]
+        self.comb_type = config["comb_type"]
+        self.pretrained = config["pretrained"]
+        self.batch_size = config["batch_size"]
+        self.total_users = config["total_users"]
+        self.total_articles = config["total_articles"]
         self.pretrained_weights_path = config["pretrained_weights_path"]
-        self.logger                  = create_logger("kjkr-poons-news-recsys")
+        self.logger = create_logger("kjkr-poons-news-recsys")
 
     def perform_all(
-        self,   
-        user_id=10, 
-        articles_picked=[1, 2, 3, 4], 
-        time_spent=[0, 53, 223, 0], 
+        self,
+        user_id=10,
+        articles_picked=[1, 2, 3, 4],
+        time_spent=[0, 53, 223, 0],
         click=[0, 1, 1, 0],
         top_many=10,
-    ):        
+    ):
         # Create the model using train and test data
         model = MfHybridModel(
-            num_user=self.total_user+1,
-            item_dim=50, # restricted by GloVe Vectors
+            num_user=self.total_user + 1,
+            item_dim=50,  # restricted by GloVe Vectors
             comb_type=self.comb_type,
             embed_dim=self.user_dimensions,
-            lr=self.learning_rate
+            lr=self.learning_rate,
         ).get_model()
 
         # Create a seperate dataframe to fine tune or train from scratch
@@ -73,7 +75,7 @@ class GlobalWrapper(object):
             {
                 "user_id": [user_id] * len(articles_picked),
                 "time_spent": time_spent,
-                "click": click
+                "click": click,
             }
         )
 
@@ -83,14 +85,12 @@ class GlobalWrapper(object):
 
         # Combine the df_ft
         self.mapper["id"] = self.mapper["id"] + 1
-        article_heading = self.mapper.set_index("id").loc[articles_picked, heading_cols].reset_index(drop=True)
-        df_ft = pd.concat(
-            [
-                df_ft,
-                article_heading
-            ], 
-            axis=1
+        article_heading = (
+            self.mapper.set_index("id")
+            .loc[articles_picked, heading_cols]
+            .reset_index(drop=True)
         )
+        df_ft = pd.concat([df_ft, article_heading], axis=1)
 
         # Use the case choosen
         if self.pretrained:
@@ -100,56 +100,43 @@ class GlobalWrapper(object):
             if self.evaluate == False:
                 # Fine tune the model
                 obj = TrainHybridModel(
-                    model_obj=model,
-                    train_data=df_ft,
-                    test_data=None,
-                    task_type="api"
+                    model_obj=model, train_data=df_ft, test_data=None, task_type="api"
                 )
             else:
                 # Fine tune the model
                 obj = TrainHybridModel(
-                    model_obj=model, 
+                    model_obj=model,
                     train_data=df_ft,
-                    test_data=self.test_data, 
-                    task_type="evaluation"
+                    test_data=self.test_data,
+                    task_type="evaluation",
                 )
 
             path_model = obj.train_model(
-                batch_size=self.batch_size,
-                epochs=self.epochs,
-                verbose=True
+                batch_size=self.batch_size, epochs=self.epochs, verbose=True
             )
         else:
             # Collect the new data
-            all_data = pd.concat(
-                [
-                    self.train_data[all_cols], 
-                    df_ft[all_cols]
-                ], 
-                axis=0
-            )
+            all_data = pd.concat([self.train_data[all_cols], df_ft[all_cols]], axis=0)
 
             if self.evaluate == False:
                 # Train a new model
                 obj = TrainHybridModel(
-                    model_obj=model, 
+                    model_obj=model,
                     train_data=all_data,
-                    test_data=self.test_data, 
-                    task_type="api"
+                    test_data=self.test_data,
+                    task_type="api",
                 )
             else:
                 # Train a new model
                 obj = TrainHybridModel(
-                    model_obj=model, 
+                    model_obj=model,
                     train_data=all_data,
-                    test_data=self.test_data, 
-                    task_type="evaluation"
+                    test_data=self.test_data,
+                    task_type="evaluation",
                 )
 
             path_model = obj.train_model(
-                batch_size=self.batch_size, 
-                epochs=self.epochs, 
-                verbose=True
+                batch_size=self.batch_size, epochs=self.epochs, verbose=True
             )
 
         # Fetch the latest model
@@ -157,10 +144,10 @@ class GlobalWrapper(object):
 
         # Make predictions for the user and return
         df_sorted, ids_to_recc = infer(
-            model=model, 
+            model=model,
             train_data=self.train_data,
-            user_id=user_id, 
-            all_ids_data=self.mapper
+            user_id=user_id,
+            all_ids_data=self.mapper,
         )
 
         if self.evaluate:
@@ -170,17 +157,17 @@ class GlobalWrapper(object):
             # Collect the user data
             for user in tqdm(range(1, self.total_user - 993 + 1), position=0):
                 dict_users[user] = infer(
-                    model=model, 
+                    model=model,
                     train_data=self.train_data,
-                    user_id=user, 
-                    all_ids_data=self.mapper
+                    user_id=user,
+                    all_ids_data=self.mapper,
                 )
 
             evaluation = Evaluate(
                 train_data=self.train_data,
                 test_data=self.test_data,
                 recommendation_lists=dict_users,
-                logger=self.logger
+                logger=self.logger,
             )
             evaluation.generate_eval_report()
             return None
@@ -190,7 +177,7 @@ class GlobalWrapper(object):
             content_all = []
 
             # Map
-            for ids in tqdm(ids_to_recc[: top_many], smoothing=0.5, position=0):
+            for ids in tqdm(ids_to_recc[:top_many], smoothing=0.5, position=0):
                 # Collect the heading and content
                 curr = self.mapper[(self.mapper["id"]) == ids][["heading", "content"]]
                 heading = curr["heading"].values[0]
@@ -201,10 +188,8 @@ class GlobalWrapper(object):
                 content_all.append(str(content))
 
             # Return as dict
-            return {
-                "heading": heading_all,
-                "content": content_all
-            }
+            return {"heading": heading_all, "content": content_all}
+
 
 if __name__ == "__main__":
     tmp = GlobalWrapper(config_path="config.yaml")
