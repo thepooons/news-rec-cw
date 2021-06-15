@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import tensorflow as tf
 from src.evaluate import Evaluate
@@ -16,6 +17,18 @@ class GlobalWrapper(object):
     """
 
     def __init__(self, config_path):
+        
+        if not(os.path.exists("data")):
+            os.mkdir("data")
+        if not(os.path.exists("data/common")):
+            os.mkdir("data/common")
+        if not(os.path.exists("data/generated")):
+            os.mkdir("data/generated")
+        if not(os.path.exists("data/GloVe")):
+            os.mkdir("data/GloVe")
+        if not(os.path.exists("logs")):
+            os.mkdir("logs")
+
         # Make the initalize variables
         with open(config_path) as f:
             config = yaml.load(f, Loader=yaml.FullLoader)

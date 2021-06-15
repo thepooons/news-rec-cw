@@ -6,7 +6,7 @@ tqdm.pandas()
 
 class DataManager(object):
     """Data Manager class"""
-    def __init__(self, clickstream_data_path, article_vectors_data_path):
+    def __init__(self, clickstream_data_path, article_vectors_data_path, config):
         self.data = pd.read_csv(clickstream_data_path) 
         self.article_vectors = pd.read_csv(article_vectors_data_path) 
         
@@ -51,8 +51,8 @@ class DataManager(object):
                     train_data = pd.concat([train_data, session_data[1]], axis=0)
                 else:
                     test_data = pd.concat([test_data, session_data[1]], axis=0)
-        train_data.to_csv("data/generated/train_clickstream.csv", index=False)
-        test_data.to_csv("data/generated/test_clickstream.csv", index=False)
+        train_data.to_csv(config["train_data_path"], index=False)
+        test_data.to_csv(config["test_data_path"], index=False)
 
 if __name__ == "__main__":
     # read the configuration
@@ -61,7 +61,8 @@ if __name__ == "__main__":
 
     dm = DataManager(
         clickstream_data_path=config["clickstream_data_path"],
-        article_vectors_data_path=config["clustered_vectorized_data_path"]
+        article_vectors_data_path=config["clustered_vectorized_data_path"],
+        config=config,
     )
 
     dm.merge_article_vectors()
