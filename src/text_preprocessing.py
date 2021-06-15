@@ -6,6 +6,14 @@ from sklearn.cluster import KMeans
 import yaml
 
 def loadGloveModel(File):
+    """loads a trained GloVe model
+
+    Args:
+        File (str): path to a trained GloVe model
+
+    Returns:
+        dict: word: vectors
+    """
     print("Loading Glove Model")
     f = open(File,'r', encoding='utf-8')
     gloveModel = {}
@@ -25,6 +33,7 @@ if __name__ == "__main__":
     RAW_DATA_PATH = config["raw_data_path"]
     VECTORED_DATA_PATH = config["clustered_vectorized_data_path"]
 
+    # read the GloVe model and raw text data scraped from news websites
     glove_vectors = loadGloveModel(GLOVE_VECTORS_PATH)
     data = pd.read_csv(RAW_DATA_PATH)
     data = data.loc[:, ["heading", "content"]]
