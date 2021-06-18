@@ -13,7 +13,7 @@ class ClickStreamGen(object):
     Creates the Click Stream Data
     """
 
-    def __init__(self, total_art, total_user, num_clusters, cluster_data, alpha=0.04):
+    def __init__(self, total_art, total_user, num_clusters, cluster_data, overtime_pref=False, alpha=0.04):
         # Initialize the variables
         self.total_art = total_art
         self.total_user = total_user
@@ -22,10 +22,12 @@ class ClickStreamGen(object):
         self.num_clusters = num_clusters
         self.alpha = alpha
         self.cluster_data = cluster_data
+        self.overtime_pref = overtime_pref
 
     def _generate_session_ids(self):
         # Generate the session ids
-        total_session_samples = np.random.poisson(lam=10, size=(self.total_user))
+        total_session_samples = np.random.poisson(
+            lam=10, size=(self.total_user))
         self.sample_count = total_session_samples
 
         # Placeholder for total sessions
@@ -56,7 +58,7 @@ class ClickStreamGen(object):
         for z in tqdm(
             range(self.total_user),
             total=self.total_user,
-            desc="Generating `article_id`s",
+            desc="Generating `article_id`s | Overtime_pref: %s" % self.overtime_pref,
         ):
             # Initially original probabilites
             selection_prob = {
@@ -67,85 +69,121 @@ class ClickStreamGen(object):
             for curr_sess in range(self.sample_count[z]):
                 # Generate the user click data
                 rand_aspect = np.random.rand(1)[0]
-                clicks_curr_user = np.random.binomial(n=1, p=rand_aspect, size=10)
+                clicks_curr_user = np.random.binomial(
+                    n=1, p=rand_aspect, size=10)
                 article_click_data.extend(clicks_curr_user)
 
-                # Handle count allotment
-                num_values_to_collect = [0] * self.num_clusters
-                for i in range(self.num_clusters):
-                    # Make a choice
-                    num_values_to_collect[i] = int(math.ceil(selection_prob[i] * 10))
+                # assign a cluster for the current user
+                cluster_assi_curr = np.random.randint(
+                    low=1, high=self.num_clusters, size=1)[0]
 
-                    # Check if value has exceeded
-                    if sum(num_values_to_collect) == 10:
-                        break
+                # Handle dups
+                list_ids_watched = []
 
-                    if sum(num_values_to_collect) > 10:
-                        # Collect how many values have exceeded
-                        offset = sum(num_values_to_collect) - 10
+                # Check if alpha based pref method
+                if self.overtime_pref:
 
+                    # Handle count allotment
+                    num_values_to_collect = [0] * self.num_clusters
+                    for i in range(self.num_clusters):
+                        # Make a choice
+                        num_values_to_collect[i] = int(
+                            math.ceil(selection_prob[i] * 10))
+
+                        # Check if value has exceeded
+                        if sum(num_values_to_collect) == 10:
+                            break
+
+                        if sum(num_values_to_collect) > 10:
+                            # Collect how many values have exceeded
+                            offset = sum(num_values_to_collect) - 10
+
+                            # Make a choice again
+                            choice = np.argsort(num_values_to_collect).tolist()[::-1][
+                                :offset
+                            ]
+
+                            # Reduce offset
+                            for index in choice:
+                                num_values_to_collect[index] -= 1
+
+                    # Cleaning phase 2
+                    step_two = 0
+                    for i in range(len(num_values_to_collect)):
+                        if num_values_to_collect[i] < 0:
+                            step_two += 1
+                            num_values_to_collect[i] = 0
+
+                    if step_two > 0:
                         # Make a choice again
-                        choice = np.argsort(num_values_to_collect).tolist()[::-1][
-                            :offset
-                        ]
+                        choice = np.argsort(num_values_to_collect).tolist()[
+                            ::-1][:step_two]
 
                         # Reduce offset
                         for index in choice:
                             num_values_to_collect[index] -= 1
 
-                # Cleaning phase 2
-                step_two = 0
-                for i in range(len(num_values_to_collect)):
-                    if num_values_to_collect[i] < 0:
-                        step_two += 1
-                        num_values_to_collect[i] = 0
+                    # Make the cluster value dict
+                    cluster_mapper = []
 
-                if step_two > 0:
-                    # Make a choice again
-                    choice = np.argsort(num_values_to_collect).tolist()[::-1][:step_two]
+                    # sample values from the data
+                    current_ids = []
 
-                    # Reduce offset
-                    for index in choice:
-                        num_values_to_collect[index] -= 1
+                    # Append
+                    for i in range(self.num_clusters):
+                        # Append the collected ids
+                        current_ids.extend(
+                            np.random.choice(
+                                self.cluster_data[i], size=num_values_to_collect[i]
+                            ).tolist()
+                        )
 
-                # Make the cluster value dict
-                cluster_mapper = []
+                        # Append the cluster value to which it belongs
+                        cluster_mapper.extend([i] * num_values_to_collect[i])
 
-                # sample values from the data
-                current_ids = []
+                    # Update user preferences using click data
+                    cluster_clicks = {i: 0 for i in range(self.num_clusters)}
+                    for i in range(len(current_ids)):
+                        if clicks_curr_user[i] == 1:
+                            cluster_clicks[cluster_mapper[i]] += 1
 
-                # Append
-                for i in range(self.num_clusters):
-                    # Append the collected ids
-                    current_ids.extend(
-                        np.random.choice(
-                            self.cluster_data[i], size=num_values_to_collect[i]
-                        ).tolist()
-                    )
+                    # Update the values
+                    pref_cluster = max(cluster_clicks.items(), key=operator.itemgetter(1))[
+                        0
+                    ]
+                    for k, v in selection_prob.items():
+                        if k == pref_cluster:
+                            selection_prob[k] += self.alpha
+                        else:
+                            selection_prob[k] -= self.alpha / \
+                                (len(selection_prob) - 1)
 
-                    # Append the cluster value to which it belongs
-                    cluster_mapper.extend([i] * num_values_to_collect[i])
+                    # Append
+                    article_ids.extend(current_ids)
 
-                # Update user preferences using click data
-                cluster_clicks = {i: 0 for i in range(self.num_clusters)}
-                for i in range(len(current_ids)):
-                    if clicks_curr_user[i] == 1:
-                        cluster_clicks[cluster_mapper[i]] += 1
+                else:
+                    # Handle repition
+                    while True:
+                        # Check repititon
+                        counter = 0
 
-                # Update the values
-                pref_cluster = max(cluster_clicks.items(), key=operator.itemgetter(1))[
-                    0
-                ]
-                for k, v in selection_prob.items():
-                    if k == pref_cluster:
-                        selection_prob[k] += self.alpha
-                    else:
-                        selection_prob[k] -= self.alpha / (len(selection_prob) - 1)
+                        # Assign all values from a single cluster
+                        choice_curr = np.random.choice(
+                            self.cluster_data[cluster_assi_curr], size=10).tolist()
 
-                # Append
-                article_ids.extend(current_ids)
+                        # Check counter values
+                        for i in choice_curr:
+                            if choice_curr in article_ids:
+                                counter += 1
+                                if counter > 1:
+                                    break
 
-        # Return
+                        if counter <= 1:
+                            break
+
+                    article_ids.extend(choice_curr)
+
+                    # Return
         return article_ids, session_ids, article_click_data
 
     def _generate_article_rank(self):
@@ -172,7 +210,8 @@ class ClickStreamGen(object):
                     size=1,
                     p=[0.33, 0.2, 0.1, 0.1, 0.08, 0.07, 0.06, 0.06],
                 )
-                time_spent_all[i] = np.random.poisson(lam=random_lam, size=(1))[0]
+                time_spent_all[i] = np.random.poisson(
+                    lam=random_lam, size=(1))[0]
 
         # Return
         return article_click_data, time_spent_all, article_ids, session_ids
@@ -263,6 +302,7 @@ if __name__ == "__main__":
         total_user=config["total_users"],
         num_clusters=len(c_data),
         cluster_data=c_data,
+        overtime_pref=False,
         alpha=0.02,
     )
 
