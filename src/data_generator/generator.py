@@ -13,9 +13,8 @@ class ClickStreamGen(object):
     Creates the Click Stream Data
     """
 
-    def __init__(self, total_art, total_user, num_clusters, cluster_data, overtime_pref=False, alpha=0.04):
+    def __init__(self, total_user, num_clusters, cluster_data, overtime_pref=False, alpha=0.04):
         # Initialize the variables
-        self.total_art = total_art
         self.total_user = total_user
         self.total_sess = None
         self.sample_count = None
@@ -65,12 +64,11 @@ class ClickStreamGen(object):
                 i: (1 / (self.num_clusters)) for i in range(self.num_clusters)
             }
 
-            # Start loop and collect valeus from cluster
+            # Start loop and collect values from cluster
             for curr_sess in range(self.sample_count[z]):
                 # Generate the user click data
-                rand_aspect = np.random.rand(1)[0]
                 clicks_curr_user = np.random.binomial(
-                    n=1, p=rand_aspect, size=10)
+                    n=1, p=0.7, size=10)
                 article_click_data.extend(clicks_curr_user)
 
                 # assign a cluster for the current user
@@ -161,8 +159,10 @@ class ClickStreamGen(object):
                     # Append
                     article_ids.extend(current_ids)
 
+                # iteratively sample 10 articles until none of the 10 articles
+                # has been sampled before 
                 else:
-                    # Handle repition
+                    # Handle repetition
                     while True:
                         # Check repititon
                         counter = 0
@@ -183,7 +183,6 @@ class ClickStreamGen(object):
 
                     article_ids.extend(choice_curr)
 
-                    # Return
         return article_ids, session_ids, article_click_data
 
     def _generate_article_rank(self):
@@ -205,13 +204,8 @@ class ClickStreamGen(object):
         for i in range(len(article_click_data)):
             # If clicked
             if article_click_data[i] == 1:
-                random_lam = np.random.choice(
-                    a=[5, 20, 50, 100, 150, 200, 300, 500],
-                    size=1,
-                    p=[0.33, 0.2, 0.1, 0.1, 0.08, 0.07, 0.06, 0.06],
-                )
                 time_spent_all[i] = np.random.poisson(
-                    lam=random_lam, size=(1))[0]
+                    lam=50, size=(1))[0]
 
         # Return
         return article_click_data, time_spent_all, article_ids, session_ids
@@ -298,7 +292,6 @@ if __name__ == "__main__":
 
     # Make an instance and create data
     inst = ClickStreamGen(
-        total_art=config["total_articles"],
         total_user=config["total_users"],
         num_clusters=len(c_data),
         cluster_data=c_data,

@@ -49,7 +49,6 @@ class GlobalWrapper(object):
         self.pretrained = config["pretrained"]
         self.batch_size = config["batch_size"]
         self.total_users = config["total_users"]
-        self.total_articles = config["total_articles"]
         self.pretrained_weights_path = config["pretrained_weights_path"]
         self.logger = create_logger("kjkr-poons-news-recsys")
 
@@ -191,7 +190,7 @@ class GlobalWrapper(object):
             dict_users = {}
 
             # Collect the user data
-            for user in tqdm(range(1, self.total_user - 993 + 1), position=0):
+            for user in tqdm(range(1, self.total_user + 1), position=0):
                 dict_users[user] = infer(
                     model=model,
                     train_data=self.train_data,

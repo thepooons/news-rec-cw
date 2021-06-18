@@ -72,7 +72,7 @@ if __name__ == "__main__":
         for token in tokens:
             if token in glove_vectors.keys():
                 content_cleaned.append(glove_vectors[token])
-        contents_cleaned.append(np.mean(np.array(heading_cleaned), axis=0))
+        contents_cleaned.append(np.mean(np.array(content_cleaned), axis=0))
 
     heading_vectors = pd.DataFrame(
         data=np.array(headings_cleaned),
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     vector_data = pd.concat(objs=[heading_vectors, content_vectors], axis=1)
 
     kmeanModel = KMeans(
-        n_clusters=5,
+        n_clusters=10,
         init="k-means++",
         n_init=10,
         max_iter=300,

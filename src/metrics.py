@@ -17,11 +17,14 @@ class Metrics(object):
     ):
         arhr_ = []
         for item in positive_item_list:
-            arhr_.append(1 / (list(recommendation_list).index(item) + 1))
+            arhr_.append(
+                1 / (list(recommendation_list).index(item) + 1)
+            )
         for item in negative_item_list:
             arhr_.append(
                 list(recommendation_list).index(item) / len(recommendation_list)
             )
+            print("arhr", arhr_)
         return np.mean(arhr_)
 
     @staticmethod
@@ -33,6 +36,8 @@ class Metrics(object):
         # k = 10 because we can only recommend 10 items
         top_k_reccomendations = set(recommendation_list[:10])
         relevant_items = set(positive_item_list)
+        if len(relevant_items) == 0:
+            return None
         return len(top_k_reccomendations.intersection(relevant_items)) / len(
             top_k_reccomendations
         )
@@ -46,6 +51,8 @@ class Metrics(object):
         # k = 10 because we can only recommend 10 items
         top_k_reccomendations = set(recommendation_list[:10])
         relevant_items = set(positive_item_list)
+        if len(relevant_items) == 0:
+            return None
         return len(top_k_reccomendations.intersection(relevant_items)) / len(
             relevant_items
         )
