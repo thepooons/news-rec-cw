@@ -37,18 +37,22 @@ class Evaluate(object):
 
         # 1. for each user in `self.recommendation_lists`:
         for user_id in tqdm(self.recommendation_lists.keys()):
-            user_data = self.train_data.loc[
+            user_data_train = self.train_data.loc[
                 self.train_data.loc[:, "user_id"] == user_id
-            ]
-            user_average_time_spent = np.mean(user_data.loc[:, "time_spent"])
-
+            ].reset_index(drop=True)
+            user_data_test = self.test_data.loc[
+                self.test_data.loc[:, "user_id"] == user_id
+            ].reset_index(drop=True)
+            user_average_time_spent = np.mean(user_data_train.loc[:, "time_spent"])
+            
             # 1.1 distinguish positive and negative user-item interactions
-            negative_item_list = user_data.loc[
-                user_data.loc[:, "time_spent"] < user_average_time_spent, "article_id"
-            ]
-            positive_item_list = user_data.loc[
-                user_data.loc[:, "time_spent"] >= user_average_time_spent, "article_id"
-            ]
+            negative_item_list = user_data_test.loc[
+                user_data_test.loc[:, "time_spent"] < user_average_time_spent, "article_id"
+            ].values
+            positive_item_list = user_data_test.loc[
+                user_data_test.loc[:, "time_spent"] >= user_average_time_spent, "article_id"
+            ].values
+
             recommendation_list = self.recommendation_lists[user_id][0][
                 "article_id"
             ].values
@@ -60,7 +64,8 @@ class Evaluate(object):
                 negative_item_list=negative_item_list,
             )
             for metric in eval_report.keys():
-                eval_report[metric].append(user_eval_report[metric])
+                if user_eval_report[metric] is not None:
+                    eval_report[metric].append(user_eval_report[metric])
 
         # 2. return eval report with metrics averaged over all the users
         for metric in eval_report.keys():
@@ -70,21 +75,25 @@ class Evaluate(object):
     @staticmethod
     def evaluate_user(recommendation_list, positive_item_list, negative_item_list):
         """generates an evaluation report for one user"""
+        arhr = Metrics.ARHR(
+            recommendation_list=recommendation_list,
+            positive_item_list=positive_item_list,
+            negative_item_list=negative_item_list,
+        )
+        pak = Metrics.precision_at_k(
+            recommendation_list=recommendation_list,
+            positive_item_list=positive_item_list,
+            negative_item_list=negative_item_list,
+        )
+        rak = Metrics.recall_at_k(
+            recommendation_list=recommendation_list,
+            positive_item_list=positive_item_list,
+            negative_item_list=negative_item_list,
+        )
+
         user_eval_report = {
-            "ARHR": Metrics.ARHR(
-                recommendation_list=recommendation_list,
-                positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list,
-            ),
-            "Precision@k": Metrics.precision_at_k(
-                recommendation_list=recommendation_list,
-                positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list,
-            ),
-            "Recall@k": Metrics.recall_at_k(
-                recommendation_list=recommendation_list,
-                positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list,
-            ),
+            "ARHR": arhr,
+            "Precision@k": pak,
+            "Recall@k": rak,
         }
         return user_eval_report
