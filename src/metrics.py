@@ -24,7 +24,7 @@ class Metrics(object):
             arhr_.append(
                 list(recommendation_list).index(item) / len(recommendation_list)
             )
-            print("arhr", arhr_)
+        
         return np.mean(arhr_)
 
     @staticmethod

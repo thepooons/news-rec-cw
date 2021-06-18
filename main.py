@@ -10,8 +10,6 @@ from tqdm import tqdm
 import yaml
 import warnings
 
-warnings.simplefilter("ignore")
-
 
 class GlobalWrapper(object):
     """

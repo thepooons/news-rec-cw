@@ -53,7 +53,6 @@ class DataManager(object):
         for user_data in tqdm(self.data.groupby("user_id"), desc="Train-Test Split"):
             num_sessions = len(user_data[1].groupby("session_id"))
             train_test_split_index = int(num_sessions * (1 - test_fraction))  # 🧠
-            print("num sessions, split index", num_sessions, train_test_split_index)
             for session_data in user_data[1].groupby("session_id"):
                 session_id = session_data[0]
                 if session_id < train_test_split_index:
