@@ -13,7 +13,8 @@ class ClickStreamGen(object):
     Creates the Click Stream Data
     """
 
-    def __init__(self, total_user, num_clusters, cluster_data, overtime_pref=False, alpha=0.04):
+    def __init__(self, total_user, num_clusters, cluster_data, cluster_data_global,
+                 crr_click=False, overtime_pref=False, alpha=0.04):
         # Initialize the variables
         self.total_user = total_user
         self.total_sess = None
@@ -21,7 +22,15 @@ class ClickStreamGen(object):
         self.num_clusters = num_clusters
         self.alpha = alpha
         self.cluster_data = cluster_data
+        self.cdg = cluster_data_global
+        self.crr_click = True
         self.overtime_pref = overtime_pref
+        self.flesh_test_segregator = {
+            "0-10": [120, 0.1],
+            "10-30": [80, 0.3],
+            "30-50": [50, 0.5],
+            "50-end": [20, 0.8]
+        }
 
     def _generate_session_ids(self):
         # Generate the session ids
@@ -52,7 +61,7 @@ class ClickStreamGen(object):
         # Placeholder
         article_ids = []
         article_click_data = []
-
+        
         # Start loop
         for z in tqdm(
             range(self.total_user),
@@ -67,20 +76,20 @@ class ClickStreamGen(object):
             # Start loop and collect values from cluster
             for curr_sess in range(self.sample_count[z]):
                 # Generate the user click data
-                clicks_curr_user = np.random.binomial(
-                    n=1, p=0.7, size=10)
-                article_click_data.extend(clicks_curr_user)
+                if self.crr_click == False:
+                    clicks_curr_user = np.random.binomial(n=1, p=0.7, size=10)
+                    article_click_data.extend(clicks_curr_user)
+                else:
+                    click_data_curr = []
 
                 # assign a cluster for the current user
-                cluster_assi_curr = np.random.randint(
-                    low=1, high=self.num_clusters, size=1)[0]
+                cluster_assi_curr = np.random.randint(low=1, high=self.num_clusters, size=1)[0]
 
                 # Handle dups
                 list_ids_watched = []
 
                 # Check if alpha based pref method
                 if self.overtime_pref:
-
                     # Handle count allotment
                     num_values_to_collect = [0] * self.num_clusters
                     for i in range(self.num_clusters):
@@ -114,8 +123,7 @@ class ClickStreamGen(object):
 
                     if step_two > 0:
                         # Make a choice again
-                        choice = np.argsort(num_values_to_collect).tolist()[
-                            ::-1][:step_two]
+                        choice = np.argsort(num_values_to_collect).tolist()[::-1][:step_two]
 
                         # Reduce offset
                         for index in choice:
@@ -155,7 +163,7 @@ class ClickStreamGen(object):
                         else:
                             selection_prob[k] -= self.alpha / \
                                 (len(selection_prob) - 1)
-
+                            
                     # Append
                     article_ids.extend(current_ids)
 
@@ -168,21 +176,55 @@ class ClickStreamGen(object):
                         counter = 0
 
                         # Assign all values from a single cluster
-                        choice_curr = np.random.choice(
+                        current_ids = np.random.choice(
                             self.cluster_data[cluster_assi_curr], size=10).tolist()
 
                         # Check counter values
-                        for i in choice_curr:
-                            if choice_curr in article_ids:
+                        for i in current_ids:
+                            if current_ids in article_ids:
                                 counter += 1
                                 if counter > 1:
                                     break
 
                         if counter <= 1:
                             break
+                            
+                    # Append articles to global list
+                    article_ids.extend(current_ids)
+                    
+        # Check if clicks have to be related
+        if self.crr_click:
+            # Make the click data
+            for i in tqdm(range(len(article_ids)), total=len(article_ids), desc="Alloting Clicks"):
+                # Check a random aspect
+                rand_aspect = np.random.rand(1)[0]
 
-                    article_ids.extend(choice_curr)
+                # Check random aspect to induce noise
+                if rand_aspect > 0.9:
+                    # Choose a small lambda
+                    p = 0.1
+                else:
+                    # Fetch the flesch score
+                    score = self.cdg[self.cdg["id"] == article_ids[i] - 1]["flesch_ease_test_score"].values[0]
 
+                    # Collect lambda value
+                    if score > 0 and score <= 10:
+                        p = self.flesh_test_segregator["0-10"][1]
+                    elif score > 10 and score <= 30:
+                        p = self.flesh_test_segregator["10-30"][1]
+                    elif score > 30 and score <= 50:
+                        p = self.flesh_test_segregator["30-50"][1]
+                    else:
+                        p = self.flesh_test_segregator["50-end"][1]
+
+                # Click value
+                click_value = np.random.binomial(n=1, p=p, size=1)[0]
+                click_data_curr.append(click_value)
+
+            # Append to the global list
+            article_click_data.extend(click_data_curr)
+        
+        # Return
         return article_ids, session_ids, article_click_data
 
     def _generate_article_rank(self):
@@ -199,13 +241,33 @@ class ClickStreamGen(object):
         # Placeholder
         time_spent_all = [0] * len(article_click_data)
 
-        # Start the loop and vroom vroom
-
-        for i in range(len(article_click_data)):
+        # Loop and fill
+        for i in tqdm(range(len(article_click_data)), total=len(article_ids), desc="Alloting Time Spent"):
             # If clicked
             if article_click_data[i] == 1:
-                time_spent_all[i] = np.random.poisson(
-                    lam=50, size=(1))[0]
+                # Check a random aspect
+                rand_aspect = np.random.rand(1)[0]
+                
+                # Check random aspect to induce noise
+                if rand_aspect > 0.9:
+                    # Choose a small lambda
+                    lambda_chosen = 3
+                else:
+                    # Fetch the flesch score
+                    score = self.cdg[self.cdg["id"] == article_ids[i] - 1]["flesch_ease_test_score"].values[0]
+                    
+                    # Collect lambda value
+                    if score > 0 and score <= 10:
+                        lambda_chosen = self.flesh_test_segregator["0-10"][0]
+                    elif score > 10 and score <= 30:
+                        lambda_chosen = self.flesh_test_segregator["10-30"][0]
+                    elif score > 30 and score <= 50:
+                        lambda_chosen = self.flesh_test_segregator["30-50"][0]
+                    else:
+                        lambda_chosen = self.flesh_test_segregator["50-end"][0]
+                    
+                # Sample the value usign the chosen lambda
+                time_spent_all[i] = np.random.poisson(lam=lambda_chosen, size=(1))[0]
 
         # Return
         return article_click_data, time_spent_all, article_ids, session_ids
@@ -296,6 +358,7 @@ if __name__ == "__main__":
         num_clusters=len(c_data),
         cluster_data=c_data,
         overtime_pref=False,
+        cluster_data_global=cluster_data,
         alpha=0.02,
     )
 
