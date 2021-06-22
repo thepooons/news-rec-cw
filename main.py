@@ -99,16 +99,16 @@ class GlobalWrapper(object):
         )
 
         # Collect needed columns
-        heading_cols = ["heading_%d" % i for i in range(100)]
-        all_cols = heading_cols + ["user_id", "time_spent", "click"]
+        content_cols = ["content_%d" % i for i in range(100)]
+        all_cols = content_cols + ["user_id", "time_spent", "click"]
 
         # Combine the df_ft
-        article_heading = (
+        article_content = (
             self.mapper.set_index("article_id")
-            .loc[articles_picked, heading_cols]
+            .loc[articles_picked, content_cols]
             .reset_index(drop=True)
         )
-        df_ft = pd.concat([df_ft, article_heading], axis=1)
+        df_ft = pd.concat([df_ft, article_content], axis=1)
 
         # Use the case choosen
         if self.pretrained:
@@ -116,7 +116,8 @@ class GlobalWrapper(object):
             # Check type of function
             if self.evaluate == False:
                 # Load the pretrained weights
-                model.load_weights(self.pretrained_weights_path + "model_hybrid_api.h5")
+                model.load_weights(
+                    self.pretrained_weights_path + "model_hybrid_api.h5")
 
                 # Fine tune the model
                 obj = TrainHybridModel(
@@ -146,7 +147,8 @@ class GlobalWrapper(object):
             )
         else:
             # Collect the new data
-            all_data = pd.concat([self.train_data[all_cols], df_ft[all_cols]], axis=0)
+            all_data = pd.concat(
+                [self.train_data[all_cols], df_ft[all_cols]], axis=0)
 
             if self.evaluate == False:
                 # Train a new model
@@ -211,7 +213,8 @@ class GlobalWrapper(object):
             # Map
             for ids in tqdm(ids_to_recc[:top_many], smoothing=0.5, position=0):
                 # Collect the heading and content
-                curr = self.mapper[(self.mapper["article_id"]) == ids][["heading", "content"]]
+                curr = self.mapper[(self.mapper["article_id"]) == ids][[
+                    "heading", "content"]]
                 heading = curr["heading"].values[0]
                 content = curr["content"].values[0]
 
