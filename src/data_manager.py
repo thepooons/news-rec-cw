@@ -9,7 +9,7 @@ tqdm.pandas()
 class DataManager(object):
     """Data Manager class"""
 
-    def __init__(self, clickstream_data_path, article_vectors_data_path, config):
+    def __init__(self, clickstream_data_path, article_vectors_data_path):
         self.data = pd.read_csv(clickstream_data_path)
         self.article_vectors = pd.read_csv(article_vectors_data_path)
 
@@ -71,7 +71,6 @@ if __name__ == "__main__":
     dm = DataManager(
         clickstream_data_path=config["clickstream_data_path"],
         article_vectors_data_path=config["clustered_vectorized_data_path"],
-        config=config,
     )
 
     dm.merge_article_vectors()
