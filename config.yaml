@@ -4,11 +4,10 @@ raw_data_path: data/bbc_toi_yahoo_stats_feats.csv # dont't change
 
 # Clickstream data Generation
 clickstream_data_path: data/generated/clickstream.csv # don't change
-use_cached_clickstream: True
 total_users: 30
 train_data_path: data/generated/train_clickstream.csv # don't change
 test_data_path: data/generated/test_clickstream.csv # don't change
-test_fraction: 0.2
+test_fraction: 0.1
 
 # Data config
 clustered_vectorized_data_path: data/common/bbc_toi_yahoo_news_clustered_vectored.csv # don't change
@@ -17,8 +16,8 @@ clustered_vectorized_data_path: data/common/bbc_toi_yahoo_news_clustered_vectore
 pretrained: False
 evaluate: True
 epochs: 10
-user_dimensions: 50
+user_dimensions: 32
 learning_rate: 0.0001
 comb_type: concat
 pretrained_weights_path: weights/
-batch_size: 16
+batch_size: 8

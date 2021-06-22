@@ -25,8 +25,7 @@ class Evaluate(object):
     ):
         """does:
         1. for each user in `self.recommendation_lists`:
-            1.1 distinguish positive and negative user-item interactions
-            1.2 log metrics
+            1.1 pass recommendations list, train, test data for this user to calculate metrics
         2. return eval report with metrics averaged over all the users
         """
         eval_report = {
@@ -45,23 +44,15 @@ class Evaluate(object):
             ].reset_index(drop=True)
             user_average_time_spent = np.mean(user_data_train.loc[:, "time_spent"])
             
-            # 1.1 distinguish positive and negative user-item interactions
-            negative_item_list = user_data_test.loc[
-                user_data_test.loc[:, "time_spent"] < user_average_time_spent, "article_id"
-            ].values
-            positive_item_list = user_data_test.loc[
-                user_data_test.loc[:, "time_spent"] >= user_average_time_spent, "article_id"
-            ].values
-
             recommendation_list = self.recommendation_lists[user_id][0][
                 "article_id"
             ].values
 
-            # 1.2 log metrics
+            # 1.1 pass recommendations list, train, test data for this user to calculate metrics
             user_eval_report = Evaluate.evaluate_user(
                 recommendation_list=recommendation_list,
-                positive_item_list=positive_item_list,
-                negative_item_list=negative_item_list,
+                user_data_train=user_data_train,
+                user_data_test=user_data_test,
             )
             for metric in eval_report.keys():
                 if user_eval_report[metric] is not None:
@@ -73,22 +64,22 @@ class Evaluate(object):
         self.logger.info(f"EVAL REPORT: {eval_report}")
 
     @staticmethod
-    def evaluate_user(recommendation_list, positive_item_list, negative_item_list):
+    def evaluate_user(recommendation_list, user_data_train, user_data_test):
         """generates an evaluation report for one user"""
         arhr = Metrics.ARHR(
             recommendation_list=recommendation_list,
-            positive_item_list=positive_item_list,
-            negative_item_list=negative_item_list,
+            user_data_train=user_data_train,
+            user_data_test=user_data_test,
         )
         pak = Metrics.precision_at_k(
             recommendation_list=recommendation_list,
-            positive_item_list=positive_item_list,
-            negative_item_list=negative_item_list,
+            user_data_train=user_data_train,
+            user_data_test=user_data_test,
         )
         rak = Metrics.recall_at_k(
             recommendation_list=recommendation_list,
-            positive_item_list=positive_item_list,
-            negative_item_list=negative_item_list,
+            user_data_train=user_data_train,
+            user_data_test=user_data_test,
         )
 
         user_eval_report = {
