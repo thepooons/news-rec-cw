@@ -18,6 +18,11 @@ class Metrics(object):
         user_average_time_spent = np.mean(user_data_train.loc[:, "time_spent"])
 
         arhr_ = []
+        if len(user_data_train) < 1:
+            return None
+        if len(user_data_test) < 1:
+            return None
+
         for _, item in user_data_test.iterrows():
             max_time_spent = max(user_data_train.loc[:, "time_spent"])
             left_slope = (0 - 1) / (user_average_time_spent -
