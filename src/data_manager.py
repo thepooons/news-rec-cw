@@ -23,8 +23,8 @@ class DataManager(object):
             return article_vector.values.reshape(1, -1)
 
         vector_columns = [
-            *[f"heading_{i}" for i in range(50)],
-            *[f"content_{i}" for i in range(50)],
+            *[f"heading_{i}" for i in range(100)],
+            *[f"content_{i}" for i in range(100)],
         ]
         article_vectors_ = self.data.loc[:, "article_id"].progress_apply(
             lambda article_id: get_vector(

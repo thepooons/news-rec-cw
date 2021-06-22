@@ -83,7 +83,7 @@ class GlobalWrapper(object):
         # Create the model using train and test data
         model = MfHybridModel(
             num_user=self.total_user + 1,
-            item_dim=50,  # restricted by GloVe Vectors
+            item_dim=100,  # restricted by GloVe Vectors
             comb_type=self.comb_type,
             embed_dim=self.user_dimensions,
             lr=self.learning_rate,
@@ -99,13 +99,12 @@ class GlobalWrapper(object):
         )
 
         # Collect needed columns
-        heading_cols = ["heading_%d" % i for i in range(50)]
+        heading_cols = ["heading_%d" % i for i in range(100)]
         all_cols = heading_cols + ["user_id", "time_spent", "click"]
 
         # Combine the df_ft
-        self.mapper["id"] = self.mapper["id"] + 1
         article_heading = (
-            self.mapper.set_index("id")
+            self.mapper.set_index("article_id")
             .loc[articles_picked, heading_cols]
             .reset_index(drop=True)
         )
@@ -212,7 +211,7 @@ class GlobalWrapper(object):
             # Map
             for ids in tqdm(ids_to_recc[:top_many], smoothing=0.5, position=0):
                 # Collect the heading and content
-                curr = self.mapper[(self.mapper["id"]) == ids][["heading", "content"]]
+                curr = self.mapper[(self.mapper["article_id"]) == ids][["heading", "content"]]
                 heading = curr["heading"].values[0]
                 content = curr["content"].values[0]
 

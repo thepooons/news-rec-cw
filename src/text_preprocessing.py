@@ -101,7 +101,6 @@ if __name__ == "__main__":
     kmeanModel.fit(vector_data)
 
     data = pd.read_csv(RAW_DATA_PATH)
-    data.loc[:, "id"] = range(0, len(data))
     data.loc[:, "cluster_id"] = kmeanModel.labels_
     data.loc[:, [f"heading_{i}" for i in range(50)]] = vector_data.loc[
         :, [f"heading_{i}" for i in range(50)]
