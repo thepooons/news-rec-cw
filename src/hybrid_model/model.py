@@ -11,7 +11,7 @@ class MfHybridModel(object):
     Args:
         num_user (int): The total number of users in the full data
 
-        item_dim (int): The dimension of item representation. Default is 50
+        item_dim (int): The dimension of item representation. Default is 100
 
         comb_type (string): The type of combination layer to user add | concat. Default is concat
 
@@ -21,7 +21,7 @@ class MfHybridModel(object):
     """
 
     def __init__(
-        self, num_user, item_dim=50, comb_type="concat", embed_dim=100, lr=0.0001
+        self, num_user, item_dim=100, comb_type="concat", embed_dim=100, lr=0.0001
     ):
         # Initialize the instance variables
         self.num_user = num_user

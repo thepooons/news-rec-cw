@@ -61,7 +61,7 @@ class ClickStreamGen(object):
         user_num_sessions_hash = {}
         for user_id in range(1, self.num_users + 1):
             user_num_sessions_hash[user_id] = 0
-            num_sessions = int(np.random.normal(loc=10, scale=2)) #random
+            num_sessions = int(np.random.normal(loc=8, scale=2)) #random
             num_sessions = max(1, num_sessions)
             for session_id in range(1, num_sessions + 1):
                 user_ids.extend([user_id] * 10)

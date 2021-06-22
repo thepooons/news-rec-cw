@@ -54,7 +54,7 @@ class TrainHybridModel(object):
         # Check type of task
         if self.task_type == "api":
             # Specify the columns to take as features
-            cols_article_data = ["heading_%d" % i for i in range(50)]
+            cols_article_data = ["heading_%d" % i for i in range(100)]
             cols_user_data = "user_id"
 
             # Start training on full data
@@ -92,7 +92,7 @@ class TrainHybridModel(object):
 
         elif self.task_type == "evaluation":
             # Specify the columns to take as features
-            cols_article_data = ["heading_%d" % i for i in range(50)]
+            cols_article_data = ["heading_%d" % i for i in range(100)]
             cols_user_data = "user_id"
 
             # Collect the data

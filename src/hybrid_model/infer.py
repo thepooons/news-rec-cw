@@ -22,7 +22,7 @@ def infer(model, all_ids_data, train_data, user_id):
         [tuple]: tuple of all predictions and api predictions
     """
     # Make the columns
-    cols_article_data = ["heading_%d" % i for i in range(50)]
+    cols_article_data = ["heading_%d" % i for i in range(100)]
 
     # Create the dataset
     dataset = tf.data.Dataset.from_tensor_slices(
@@ -39,7 +39,7 @@ def infer(model, all_ids_data, train_data, user_id):
 
     # Sort the predictions
     mapped_data = pd.DataFrame(
-        {"article_id": all_ids_data["id"], "preds": prediction.tolist()}
+        {"article_id": all_ids_data["article_id"], "preds": prediction.tolist()}
     )
 
     # sort the data
@@ -49,7 +49,7 @@ def infer(model, all_ids_data, train_data, user_id):
     watched_articles = np.unique(
         train_data[train_data["user_id"] == user_id]["article_id"]
     )
-    not_watched = list(set(all_ids_data["id"]) - set(watched_articles))
+    not_watched = list(set(all_ids_data["article_id"]) - set(watched_articles))
 
     list_articles_not_watched = []
     for index, row in sorted_data.iterrows():
