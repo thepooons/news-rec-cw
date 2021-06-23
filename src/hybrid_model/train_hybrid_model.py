@@ -62,12 +62,10 @@ class TrainHybridModel(object):
                 merged_data = pd.concat(
                     [
                         self.train_data[
-                            cols_article_data +
-                            ["click", "time_spent", "user_id"]
+                            cols_article_data + ["click", "time_spent", "user_id"]
                         ],
                         self.test_data[
-                            cols_article_data +
-                            ["click", "time_spent", "user_id"]
+                            cols_article_data + ["click", "time_spent", "user_id"]
                         ],
                     ],
                     axis=0,
@@ -86,8 +84,7 @@ class TrainHybridModel(object):
             ).batch(batch_size)
 
             # Train the model
-            history = hybrid_model.fit(
-                train_dataset, epochs=epochs, verbose=verbose)
+            history = hybrid_model.fit(train_dataset, epochs=epochs, verbose=verbose)
 
             # Save the model
             hybrid_model.save(path)
@@ -101,13 +98,11 @@ class TrainHybridModel(object):
             # Collect the data
             article_data_train = self.train_data[cols_article_data]
             user_data_train = self.train_data[cols_user_data] - 1
-            target_data_train = self.train_data["time_spent"] * \
-                self.train_data["click"]
+            target_data_train = self.train_data["time_spent"] * self.train_data["click"]
 
             article_data_test = self.test_data[cols_article_data]
             user_data_test = self.test_data[cols_user_data] - 1
-            target_data_test = self.test_data["time_spent"] * \
-                self.test_data["click"]
+            target_data_test = self.test_data["time_spent"] * self.test_data["click"]
 
             # Collect the required features and create the dataset
             train_dataset = tf.data.Dataset.from_tensor_slices(

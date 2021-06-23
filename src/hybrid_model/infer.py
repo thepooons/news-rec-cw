@@ -39,8 +39,10 @@ def infer(model, all_ids_data, train_data, user_id):
 
     # Sort the predictions
     mapped_data = pd.DataFrame(
-        {"article_id": all_ids_data["article_id"],
-            "preds": prediction.reshape(-1).tolist()}
+        {
+            "article_id": all_ids_data["article_id"],
+            "preds": prediction.reshape(-1).tolist(),
+        }
     )
 
     # sort the data
@@ -48,9 +50,11 @@ def infer(model, all_ids_data, train_data, user_id):
 
     # Collect the data that has not been watched
     watched_articles = np.unique(
-        train_data[train_data["user_id"] == int(user_id - 1)]["article_id"]).astype(int)
+        train_data[train_data["user_id"] == int(user_id - 1)]["article_id"]
+    ).astype(int)
     not_watched = list(
-        set(all_ids_data["article_id"].astype(int)) - set(watched_articles))
+        set(all_ids_data["article_id"].astype(int)) - set(watched_articles)
+    )
 
     list_articles_not_watched = []
     for index, row in sorted_data.iterrows():
