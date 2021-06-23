@@ -165,4 +165,4 @@ class Evaluate_Global(object):
 
 if __name__ == "__main__":
     tmp = Evaluate_Global(config_path="config.yaml")
-    tmp.perform_all()
+    tmp.evaluate_all()

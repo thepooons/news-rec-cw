@@ -31,7 +31,7 @@ def map_article_id_to_article(article_ids, fields):
         id_to_article[article_id] = article_heading_content
     return id_to_article
 
-def top_10_recommendations(clickstream_data):
+def top_10_recommendations(clickstream_data, article_data):
     """returns a dict with keys 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
        and value = {
            "article_id": int,
@@ -42,5 +42,26 @@ def top_10_recommendations(clickstream_data):
     Args:
         clickstream_data (pd.DataFrame): df containing all the 
         clickstream encountered so far
+        article_data (pd.DataFram): df containing article data
     """
+    top_10_most_popular_articles = clickstream_data.loc[:, "article_id"].value_counts()[:10]
     
+    top_10_most_popular_article_ids = top_10_most_popular_articles.index
+    headings = []
+    contents = []
+    article_ids = []
+
+    for article_id in top_10_most_popular_article_ids:
+        article_ids.append(article_id)
+        headings.append(article_data.loc[article_data.loc[:, "article_id"] == top_10_most_popular_article_ids[0], "heading"].item())
+        contents.append(article_data.loc[article_data.loc[:, "article_id"] == top_10_most_popular_article_ids[0], "content"].item())
+
+    recommendation_dict = {}
+    
+    for data in zip(article_ids, headings, contents):
+        recommendation_dict[data[0]] = {
+            "heading": data[1],
+            "content": data[2]
+        }
+
+    return recommendation_dict

@@ -9,10 +9,10 @@ from src.hybrid_model.infer import infer
 from src.utils import create_logger
 from tqdm import tqdm
 import yaml
-from utils import top_10_recommendations
+from src.utils import top_10_recommendations
 
 
-class API(object):
+class APIRecommender(object):
     """
     Perform all the things
     """
@@ -54,7 +54,8 @@ class API(object):
         self.embed_local_path = config["embed_size_local"]
 
         self.top_10_recommendation_dict = top_10_recommendations(
-                clickstream_data=self.train_data
+                clickstream_data=self.train_data,
+                article_data=self.mapper,
             )
 
     def load_existing_weight(self, model_old, embed_size=100, total_user=100):

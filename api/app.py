@@ -1,13 +1,13 @@
-from typing import Dict, List
+from typing import List
 from fastapi import FastAPI
 import numpy as np
 from pydantic.class_validators import root_validator
-from src.api_recommender import make_recommendations
-from src.utils import map_article_id_to_article
+from src.api_recommender import APIRecommender
 from pydantic import BaseModel, validator
 
 class UserItemInteraction(BaseModel):
     # type hints
+    user_id: int 
     article_id: List[int]
     click: List[int]
     time_spent: List[int]
@@ -73,10 +73,7 @@ at an index where `click` list has zero, check `click`, and `time_spent` at inde
             raise ValueError(f"All the values in `article_id` must be unique, you passed {value}")
         return value
 
-#TODO: remove this once a function to make reocmmendations is made 
-def make_recommendations(user_item_interaction):
-    # train model with new user_item interactions
-    return {i: int(np.random.choice(np.arange(1, 7900))) for i in range(1, 11)}
+api_recommender = APIRecommender(config_path="config.yaml")
 
 app = FastAPI()
 
@@ -86,7 +83,12 @@ def root():
 
 @app.post("/feed/")
 async def get_recommendations(user_item_interaction: UserItemInteraction):
-    recommendation_dict = make_recommendations(user_item_interaction)
+    recommendation_dict = api_recommender.make_recommendations(
+        user_id=user_item_interaction.user_id,
+        article_id=user_item_interaction.article_id,
+        time_spent=user_item_interaction.time_spent,
+        click=user_item_interaction.click
+    )
     return {
         "recommendations": recommendation_dict
     }
