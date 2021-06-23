@@ -1,4 +1,5 @@
 import logging
+import pandas as pd
 
 
 def create_logger(logger_name):
@@ -16,3 +17,16 @@ def create_logger(logger_name):
         logger.addHandler(console_handler)
         logger.addHandler(file_handler)
     return logger
+
+
+def map_article_id_to_article(article_ids, fields):
+    article_data = pd.read_csv("data/common/bbc_toi_yahoo_news_clustered_vectored.csv")
+    id_to_article = {}
+    for article_id in article_ids:
+        article = article_data.loc[article_data.loc[:, "article_id"] == article_id, :]
+        article_heading_content = {}
+        for field in fields:
+            field_value = article[field].values.item()
+            article_heading_content[field] = field_value
+        id_to_article[article_id] = article_heading_content
+    return id_to_article
