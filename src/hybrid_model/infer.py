@@ -28,7 +28,7 @@ def infer(model, all_ids_data, train_data, user_id):
     dataset = tf.data.Dataset.from_tensor_slices(
         (
             {
-                "input_1": np.array([user_id] * len(all_ids_data)),
+                "input_1": np.array([user_id - 1] * len(all_ids_data)),
                 "input_2": all_ids_data[cols_article_data].values,
             }
         )
@@ -48,7 +48,7 @@ def infer(model, all_ids_data, train_data, user_id):
 
     # Collect the data that has not been watched
     watched_articles = np.unique(
-        train_data[train_data["user_id"] == int(user_id)]["article_id"]).astype(int)
+        train_data[train_data["user_id"] == int(user_id - 1)]["article_id"]).astype(int)
     not_watched = list(
         set(all_ids_data["article_id"].astype(int)) - set(watched_articles))
 
