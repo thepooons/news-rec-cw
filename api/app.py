@@ -2,7 +2,7 @@ from typing import Dict, List
 from fastapi import FastAPI
 import numpy as np
 from pydantic.class_validators import root_validator
-# from src.whatever import make_recommendations
+from src.api_recommender import make_recommendations
 from src.utils import map_article_id_to_article
 from pydantic import BaseModel, validator
 
@@ -87,10 +87,6 @@ def root():
 @app.post("/feed/")
 async def get_recommendations(user_item_interaction: UserItemInteraction):
     recommendation_dict = make_recommendations(user_item_interaction)
-    recommendation_dict = map_article_id_to_article(
-        article_ids=list(recommendation_dict.values()),
-        fields=["heading", "article_id"]
-    )
     return {
         "recommendations": recommendation_dict
     }

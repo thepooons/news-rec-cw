@@ -30,3 +30,17 @@ def map_article_id_to_article(article_ids, fields):
             article_heading_content[field] = field_value
         id_to_article[article_id] = article_heading_content
     return id_to_article
+
+def top_10_recommendations(clickstream_data):
+    """returns a dict with keys 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+       and value = {
+           "article_id": int,
+           "heading": str,
+           "content": str
+       }
+
+    Args:
+        clickstream_data (pd.DataFrame): df containing all the 
+        clickstream encountered so far
+    """
+    

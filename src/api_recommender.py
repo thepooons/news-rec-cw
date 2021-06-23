@@ -3,15 +3,13 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import pickle
-from src.evaluate import Evaluate
 from src.hybrid_model.model import MfHybridModel
 from src.hybrid_model.train_hybrid_model import TrainHybridModel
 from src.hybrid_model.infer import infer
 from src.utils import create_logger
 from tqdm import tqdm
 import yaml
-import warnings
-from collections import defaultdict
+from utils import top_10_recommendations
 
 
 class API(object):
@@ -55,6 +53,10 @@ class API(object):
         self.user_hist_path = config["user_hist"]
         self.embed_local_path = config["embed_size_local"]
 
+        self.top_10_recommendation_dict = top_10_recommendations(
+                clickstream_data=self.train_data
+            )
+
     def load_existing_weight(self, model_old, embed_size=100, total_user=100):
         # Fetch the weights from old model
         weights = model_old.layers[2].get_weights()[0]
@@ -78,22 +80,22 @@ class API(object):
         # Load the weights to a new matrix
         return layer_weight_dict
 
-    def get_recommendation(
+    def make_recommendations(
         self,
         user_id=102,
-        articles_picked=[1, 2, 3, 4],
+        article_id=[1, 2, 3, 4],
         time_spent=[0, 53, 223, 0],
         click=[0, 1, 1, 0],
         top_many=10,
     ):
         """
-        Combines all the code into a single pipeline for providing evaluationa and
+        Combines all the code into a single pipeline for providing evaluation and
         serving API requests
 
         Args:
             user_id (int, optional): The user id in case of API predictions. Defaults to 10.
 
-            articles_picked (list, optional): The article that are clicked by user during
+            article_id (list, optional): The article that are clicked by user during
                                               frontend. Defaults to [1, 2, 3, 4].
 
             time_spent (list, optional): The list capturing the time spent of articles
@@ -138,15 +140,12 @@ class API(object):
         ###################### USER COLLABORATIVE ASPECT ###################
         # Check if new user
         if show_trending and old_user == False:
-            #####################################################
-            return self.mapper[["heading", "content"]].values[10]
-            ############## TO DO TRENDING #######################
-            #####################################################
+            return self.top_10_recommendation_dict
 
         # Create a seperate dataframe to fine tune or train from scratch
         df_ft = pd.DataFrame(
             {
-                "user_id": [user_id - 1] * len(articles_picked),
+                "user_id": [user_id - 1] * len(article_id),
                 "time_spent": time_spent,
                 "click": click,
             }
@@ -159,7 +158,7 @@ class API(object):
         # Combine the df_ft
         article_content = (
             self.mapper.set_index(
-                "article_id").loc[articles_picked][content_cols].reset_index(drop=True)
+                "article_id").loc[article_id][content_cols].reset_index(drop=True)
         )
         df_ft = pd.concat([df_ft, article_content], axis=1)
 
@@ -238,6 +237,7 @@ class API(object):
         # Reverse map the articles ids
         heading_all = []
         content_all = []
+        article_id_all = []
 
         # Map
         for ids in tqdm(ids_to_recc[:top_many], position=0):
@@ -246,15 +246,20 @@ class API(object):
                 "heading", "content"]]
             heading = curr["heading"].values[0]
             content = curr["content"].values[0]
+            article_id = curr["article"].values[0]
 
             # Append to the list
             heading_all.append(str(heading))
             content_all.append(str(content))
-
+            article_id_all.append(int(article_id))
+        
+        recommendation_dict = {}
+        for index, data in enumerate(zip(article_id_all, heading_all, content_all)):
+            recommendation_dict[index] = {
+                "article_id": data[0],
+                "heading": data[1],
+                "content": data[2]
+            }
+            
         # Return as dict
-        return {"heading": heading_all, "content": content_all}
-
-
-if __name__ == "__main__":
-    tmp = API(config_path="config.yaml")
-    out = tmp.get_recommendation()
+        return recommendation_dict
