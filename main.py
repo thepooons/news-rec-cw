@@ -40,7 +40,6 @@ class GlobalWrapper(object):
         self.train_data = pd.read_csv(config["train_data_path"])
         self.test_data = pd.read_csv(config["test_data_path"])
         self.mapper = pd.read_csv(config["clustered_vectorized_data_path"])
-        self.total_user = config["total_users"]
         self.epochs = config["epochs"]
         self.user_dimensions = config["user_dimensions"]
         self.learning_rate = config["learning_rate"]
@@ -191,14 +190,13 @@ class GlobalWrapper(object):
             dict_users = {}
 
             # Collect the user data
-            for user in tqdm(range(1, 1 + 1), position=0):
+            for user in tqdm(range(1, self.total_users + 1), position=0):
                 dict_users[user] = infer(
                     model=model,
                     train_data=self.train_data,
                     user_id=user,
                     all_ids_data=self.mapper,
                 )
-            print(dict_users)
             evaluation = Evaluate(
                 train_data=self.train_data,
                 test_data=self.test_data,
