@@ -54,8 +54,8 @@ class API(object):
         self.embed_local_path = config["embed_size_local"]
 
         self.top_10_recommendation_dict = top_10_recommendations(
-                clickstream_data=self.train_data
-            )
+            clickstream_data=self.train_data
+        )
 
     def load_existing_weight(self, model_old, embed_size=100, total_user=100):
         # Fetch the weights from old model
@@ -137,9 +137,9 @@ class API(object):
         with open(self.user_hist_path, "wb") as f:
             pickle.dump(user_hist, f)
 
-        ###################### USER COLLABORATIVE ASPECT ###################
+        ################## USER COLLABORATIVE ASPECT ###################
         # Check if new user
-        if show_trending and old_user == False:
+        if show_trending and old_user == False and len(article_id) == 0:
             return self.top_10_recommendation_dict
 
         # Create a seperate dataframe to fine tune or train from scratch
@@ -162,7 +162,7 @@ class API(object):
         )
         df_ft = pd.concat([df_ft, article_content], axis=1)
 
-        # Use the case choosen
+        # Use the case choosens
         if self.pretrained and old_user == True:
             # Print
             print("Loading Pretrained model weights.....")
@@ -252,7 +252,7 @@ class API(object):
             heading_all.append(str(heading))
             content_all.append(str(content))
             article_id_all.append(int(article_id))
-        
+
         recommendation_dict = {}
         for index, data in enumerate(zip(article_id_all, heading_all, content_all)):
             recommendation_dict[index] = {
@@ -260,6 +260,6 @@ class API(object):
                 "heading": data[1],
                 "content": data[2]
             }
-            
+
         # Return as dict
         return recommendation_dict
