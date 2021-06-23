@@ -21,13 +21,13 @@ class MfHybridModel(object):
     """
 
     def __init__(
-        self, num_user, item_dim=100, comb_type="concat", embed_dim=100, lr=0.0001
-    ):
+            self, num_user, item_dim=100, comb_type="concat", embed_dim=100, lr=0.0001, user_pretrained=None):
         # Initialize the instance variables
         self.num_user = num_user
         self.item_dim = item_dim
         self.comb_type = comb_type
         self.embed_dim = embed_dim
+        self.user_pretrained = user_pretrained
         self.lr = lr
 
     def get_model(self):
@@ -36,20 +36,36 @@ class MfHybridModel(object):
         input_item_id = keras.layers.Input(
             shape=(self.item_dim,), name="input_2")
 
-        # Create the embedding layers
-        embedding_user_gmf = keras.layers.Embedding(
-            input_dim=self.num_user,
-            output_dim=self.embed_dim,
-            embeddings_initializer="he_normal",
-            embeddings_regularizer=tf.keras.regularizers.l2(1e-6),
-        )(input_user_id)
+        if self.user_pretrained == None:
+            # Create the embedding layers
+            embedding_user_gmf = keras.layers.Embedding(
+                input_dim=self.num_user,
+                output_dim=self.embed_dim,
+                embeddings_initializer="he_normal",
+                embeddings_regularizer=tf.keras.regularizers.l2(1e-6),
+            )(input_user_id)
 
-        embedding_user_mlp = keras.layers.Embedding(
-            input_dim=self.num_user,
-            output_dim=self.embed_dim,
-            embeddings_initializer="he_normal",
-            embeddings_regularizer=tf.keras.regularizers.l2(1e-6),
-        )(input_user_id)
+            embedding_user_mlp = keras.layers.Embedding(
+                input_dim=self.num_user,
+                output_dim=self.embed_dim,
+                embeddings_initializer="he_normal",
+                embeddings_regularizer=tf.keras.regularizers.l2(1e-6),
+            )(input_user_id)
+        else:
+            # Create the embedding layers
+            embedding_user_gmf = keras.layers.Embedding(
+                input_dim=self.num_user,
+                output_dim=self.embed_dim,
+                weights=[self.user_pretrained[0]],
+                embeddings_regularizer=tf.keras.regularizers.l2(1e-6),
+            )(input_user_id)
+
+            embedding_user_mlp = keras.layers.Embedding(
+                input_dim=self.num_user,
+                output_dim=self.embed_dim,
+                weights=[self.user_pretrained[1]],
+                embeddings_regularizer=tf.keras.regularizers.l2(1e-6),
+            )(input_user_id)
 
         # GMF and its optimal shape
         flatten_user_gmf = keras.layers.Flatten()(embedding_user_gmf)

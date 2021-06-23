@@ -12,7 +12,7 @@ import yaml
 import warnings
 
 
-class GlobalWrapper(object):
+class Evaluate_Global(object):
     """
     Perform all the things
     """
@@ -40,17 +40,17 @@ class GlobalWrapper(object):
         self.train_data = pd.read_csv(config["train_data_path"])
         self.test_data = pd.read_csv(config["test_data_path"])
         self.mapper = pd.read_csv(config["clustered_vectorized_data_path"])
+        self.total_user = config["total_users"]
         self.epochs = config["epochs"]
         self.user_dimensions = config["user_dimensions"]
         self.learning_rate = config["learning_rate"]
         self.comb_type = config["comb_type"]
-        self.pretrained = config["pretrained"]
         self.batch_size = config["batch_size"]
         self.total_users = config["total_users"]
         self.pretrained_weights_path = config["pretrained_weights_path"]
         self.logger = create_logger("kjkr-poons-news-recsys")
 
-    def perform_all(
+    def evaluate_all(
         self,
         user_id=10,
         articles_picked=[1, 2, 3, 4],
@@ -83,7 +83,7 @@ class GlobalWrapper(object):
         # Create the model using train and test data
         model = MfHybridModel(
             num_user=len(np.unique(self.train_data["user_id"].values.tolist(
-            ) + self.test_data["user_id"].values.tolist())) + 10,
+            ) + self.test_data["user_id"].values.tolist())) + 4,
             item_dim=100,  # restricted by GloVe Vectors
             comb_type=self.comb_type,
             embed_dim=self.user_dimensions,
@@ -106,73 +106,27 @@ class GlobalWrapper(object):
         # Combine the df_ft
         article_content = (
             self.mapper.set_index("article_id")
-            .loc[articles_picked, content_cols]
+            .loc[articles_picked][content_cols]
             .reset_index(drop=True)
         )
         df_ft = pd.concat([df_ft, article_content], axis=1)
 
-        # Use the case choosen
-        if self.pretrained:
-            print("Loading Pretrained model weights.....")
-            # Check type of function
-            if self.evaluate == False:
-                # Load the pretrained weights
-                model.load_weights(
-                    self.pretrained_weights_path + "model_hybrid_api.h5")
+        # Collect the new data
+        all_data = pd.concat(
+            [self.train_data[all_cols], df_ft[all_cols]], axis=0)
 
-                # Fine tune the model
-                obj = TrainHybridModel(
-                    model_obj=model,
-                    train_data=df_ft,
-                    test_data=None,
-                    task_type="api",
-                    save_path=self.pretrained_weights_path,
-                )
-            else:
-                # Load the pretrained weights
-                model.load_weights(
-                    self.pretrained_weights_path + "model_hybrid_evaluation.h5"
-                )
+        # Train a new model
+        obj = TrainHybridModel(
+            model_obj=model,
+            train_data=all_data,
+            test_data=self.test_data,
+            task_type="evaluation",
+            save_path=self.pretrained_weights_path,
+        )
 
-                # Fine tune the model
-                obj = TrainHybridModel(
-                    model_obj=model,
-                    train_data=df_ft,
-                    test_data=self.test_data,
-                    task_type="evaluation",
-                    save_path=self.pretrained_weights_path,
-                )
-
-            path_model = obj.train_model(
-                batch_size=self.batch_size, epochs=self.epochs, verbose=True
-            )
-        else:
-            # Collect the new data
-            all_data = pd.concat(
-                [self.train_data[all_cols], df_ft[all_cols]], axis=0)
-
-            if self.evaluate == False:
-                # Train a new model
-                obj = TrainHybridModel(
-                    model_obj=model,
-                    train_data=all_data,
-                    test_data=self.test_data,
-                    task_type="api",
-                    save_path=self.pretrained_weights_path,
-                )
-            else:
-                # Train a new model
-                obj = TrainHybridModel(
-                    model_obj=model,
-                    train_data=all_data,
-                    test_data=self.test_data,
-                    task_type="evaluation",
-                    save_path=self.pretrained_weights_path,
-                )
-
-            path_model = obj.train_model(
-                batch_size=self.batch_size, epochs=self.epochs, verbose=True
-            )
+        path_model = obj.train_model(
+            batch_size=self.batch_size, epochs=self.epochs, verbose=True
+        )
 
         # Fetch the latest model
         model = path_model
@@ -204,28 +158,11 @@ class GlobalWrapper(object):
                 logger=self.logger,
             )
             evaluation.generate_eval_report()
+
+            # Return None
             return None
-        else:
-            # Reverse map the articles ids
-            heading_all = []
-            content_all = []
-
-            # Map
-            for ids in tqdm(ids_to_recc[:top_many], position=0):
-                # Collect the heading and content
-                curr = self.mapper[(self.mapper["article_id"]) == ids][[
-                    "heading", "content"]]
-                heading = curr["heading"].values[0]
-                content = curr["content"].values[0]
-
-                # Append to the list
-                heading_all.append(str(heading))
-                content_all.append(str(content))
-
-            # Return as dict
-            return {"heading": heading_all, "content": content_all}
 
 
 if __name__ == "__main__":
-    tmp = GlobalWrapper(config_path="config.yaml")
+    tmp = Evaluate_Global(config_path="config.yaml")
     tmp.perform_all()

@@ -51,7 +51,6 @@ class ClickStreamGen(object):
         
         # save clickstream data
         generated_data = pd.DataFrame(lists_hash)
-        print(generated_data.loc[:, "click"].value_counts())
         generated_data.to_csv(self.clickstream_data_path, index=False)
 
     def _generate_user_ids_session_ids(self):
@@ -147,13 +146,11 @@ class ClickStreamGen(object):
                 self.clustered_article_data.loc[:, "article_id"] == article_id,
                 "flesch_kincaid_grade_score"
             ].values
-            flesch_kincaid_score_heading = self.clustered_article_data.loc[
-                self.clustered_article_data.loc[:, "article_id"] == article_id,
-                "flesch_kincaid_grade_score_h"
-            ].values
-
-            is_click = 1 if flesch_kincaid_score_heading < 11 else 0
-
+            random_uniform_gen = np.random.default_rng()
+            is_click = random_uniform_gen.choice(
+                a=[1, 0],
+                p=[0.7, 0.3]
+            )
             if is_click:
                 click.append(1)
                 time_spent.append(flesch_kincaid_score[0])
