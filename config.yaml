@@ -15,9 +15,9 @@ clustered_vectorized_data_path: data/common/bbc_toi_yahoo_news_clustered_vectore
 # NeuMF config
 pretrained: False
 evaluate: True
-epochs: 5
-user_dimensions: 64
+epochs: 4
+user_dimensions: 100
 learning_rate: 0.0001
 comb_type: concat
 pretrained_weights_path: weights/
-batch_size: 32
+batch_size: 8
