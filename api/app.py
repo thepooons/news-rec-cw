@@ -89,6 +89,8 @@ async def get_recommendations(user_item_interaction: UserItemInteraction):
         time_spent=user_item_interaction.time_spent,
         click=user_item_interaction.click
     )
+    recommended_article_ids = recommendation_dict.keys()
     return {
-        "recommendations": recommendation_dict
+        "recommendations": recommendation_dict,
+        "recommended_article_list": list(recommended_article_ids)
     }

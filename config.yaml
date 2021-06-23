@@ -15,7 +15,7 @@ test_fraction: 0.1
 clustered_vectorized_data_path: data/common/bbc_toi_yahoo_news_clustered_vectored.csv # don't change
 
 # NeuMF config
-pretrained: True
+pretrained: False
 evaluate: True
 epochs: 4
 user_dimensions: 100

@@ -138,9 +138,9 @@ class APIRecommender(object):
         with open(self.user_hist_path, "wb") as f:
             pickle.dump(user_hist, f)
 
-        ###################### USER COLLABORATIVE ASPECT ###################
+        ################## USER COLLABORATIVE ASPECT ###################
         # Check if new user
-        if show_trending and old_user == False:
+        if show_trending and old_user == False and len(article_id) == 0:
             return self.top_10_recommendation_dict
 
         # Create a seperate dataframe to fine tune or train from scratch
@@ -163,7 +163,7 @@ class APIRecommender(object):
         )
         df_ft = pd.concat([df_ft, article_content], axis=1)
 
-        # Use the case choosen
+        # Use the case choosens
         if self.pretrained and old_user == True:
             # Print
             print("Loading Pretrained model weights.....")
@@ -171,7 +171,8 @@ class APIRecommender(object):
             # Load the pretrained weights
             weights_old = self.load_existing_weight(
                 model_old=tf.keras.models.load_model(
-                    self.pretrained_weights_path + "model_hybrid_api.h5"),
+                    self.pretrained_weights_path + "model_hybrid_api.h5"
+                ),
                 total_user=size_embed - 1,
             )
 
@@ -243,24 +244,22 @@ class APIRecommender(object):
         # Map
         for ids in tqdm(ids_to_recc[:top_many], position=0):
             # Collect the heading and content
-            curr = self.mapper[(self.mapper["article_id"]) == ids][[
-                "heading", "content"]]
+            curr = self.mapper[(self.mapper["article_id"]) == ids]
             heading = curr["heading"].values[0]
             content = curr["content"].values[0]
-            article_id = curr["article"].values[0]
+            article_id = curr["article_id"].values[0]
 
             # Append to the list
             heading_all.append(str(heading))
             content_all.append(str(content))
             article_id_all.append(int(article_id))
-        
+
         recommendation_dict = {}
-        for index, data in enumerate(zip(article_id_all, heading_all, content_all)):
-            recommendation_dict[index] = {
-                "article_id": data[0],
+        for data in zip(article_id_all, heading_all, content_all):
+            recommendation_dict[data[0]] = {
                 "heading": data[1],
                 "content": data[2]
             }
-            
+
         # Return as dict
         return recommendation_dict

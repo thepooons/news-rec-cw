@@ -53,8 +53,8 @@ def top_10_recommendations(clickstream_data, article_data):
 
     for article_id in top_10_most_popular_article_ids:
         article_ids.append(article_id)
-        headings.append(article_data.loc[article_data.loc[:, "article_id"] == top_10_most_popular_article_ids[0], "heading"].item())
-        contents.append(article_data.loc[article_data.loc[:, "article_id"] == top_10_most_popular_article_ids[0], "content"].item())
+        headings.append(article_data.loc[article_data.loc[:, "article_id"] == article_id, "heading"].item())
+        contents.append(article_data.loc[article_data.loc[:, "article_id"] == article_id, "content"].item())
 
     recommendation_dict = {}
     
