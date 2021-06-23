@@ -9,10 +9,10 @@ from src.hybrid_model.infer import infer
 from src.utils import create_logger
 from tqdm import tqdm
 import yaml
-from utils import top_10_recommendations
+from src.utils import top_10_recommendations
 
 
-class API(object):
+class APIRecommender(object):
     """
     Perform all the things
     """
@@ -54,8 +54,9 @@ class API(object):
         self.embed_local_path = config["embed_size_local"]
 
         self.top_10_recommendation_dict = top_10_recommendations(
-            clickstream_data=self.train_data
-        )
+                clickstream_data=self.train_data,
+                article_data=self.mapper,
+            )
 
     def load_existing_weight(self, model_old, embed_size=100, total_user=100):
         # Fetch the weights from old model
@@ -170,7 +171,8 @@ class API(object):
             # Load the pretrained weights
             weights_old = self.load_existing_weight(
                 model_old=tf.keras.models.load_model(
-                    self.pretrained_weights_path + "model_hybrid_api.h5"),
+                    self.pretrained_weights_path + "model_hybrid_api.h5"
+                ),
                 total_user=size_embed - 1,
             )
 
@@ -242,11 +244,10 @@ class API(object):
         # Map
         for ids in tqdm(ids_to_recc[:top_many], position=0):
             # Collect the heading and content
-            curr = self.mapper[(self.mapper["article_id"]) == ids][[
-                "heading", "content"]]
+            curr = self.mapper[(self.mapper["article_id"]) == ids]
             heading = curr["heading"].values[0]
             content = curr["content"].values[0]
-            article_id = curr["article"].values[0]
+            article_id = curr["article_id"].values[0]
 
             # Append to the list
             heading_all.append(str(heading))
@@ -254,9 +255,8 @@ class API(object):
             article_id_all.append(int(article_id))
 
         recommendation_dict = {}
-        for index, data in enumerate(zip(article_id_all, heading_all, content_all)):
-            recommendation_dict[index] = {
-                "article_id": data[0],
+        for data in zip(article_id_all, heading_all, content_all):
+            recommendation_dict[data[0]] = {
                 "heading": data[1],
                 "content": data[2]
             }
