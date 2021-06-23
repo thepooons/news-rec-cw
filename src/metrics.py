@@ -35,8 +35,7 @@ class Metrics(object):
                 weight = right_slope * \
                     (item["time_spent"] - user_average_time_spent)
                 arhr_.append(
-                    (1 /
-                     (list(recommendation_list).index(item["article_id"]) + 1)) * weight
+                    (1 / (list(recommendation_list).index(item["article_id"]) + 1)) * weight
                 )
             else:
                 weight = -left_slope * \
