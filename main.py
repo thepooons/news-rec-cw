@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 from src.evaluate import Evaluate
 from src.hybrid_model.model import MfHybridModel
@@ -82,7 +83,8 @@ class GlobalWrapper(object):
         """
         # Create the model using train and test data
         model = MfHybridModel(
-            num_user=self.total_user + 1,
+            num_user=len(np.unique(self.train_data["user_id"].values.tolist(
+            ) + self.test_data["user_id"].values.tolist())) + 10,
             item_dim=100,  # restricted by GloVe Vectors
             comb_type=self.comb_type,
             embed_dim=self.user_dimensions,
@@ -189,14 +191,14 @@ class GlobalWrapper(object):
             dict_users = {}
 
             # Collect the user data
-            for user in tqdm(range(1, self.total_user + 1), position=0):
+            for user in tqdm(range(1, 1 + 1), position=0):
                 dict_users[user] = infer(
                     model=model,
                     train_data=self.train_data,
                     user_id=user,
                     all_ids_data=self.mapper,
                 )
-
+            print(dict_users)
             evaluation = Evaluate(
                 train_data=self.train_data,
                 test_data=self.test_data,
@@ -211,7 +213,7 @@ class GlobalWrapper(object):
             content_all = []
 
             # Map
-            for ids in tqdm(ids_to_recc[:top_many], smoothing=0.5, position=0):
+            for ids in tqdm(ids_to_recc[:top_many], position=0):
                 # Collect the heading and content
                 curr = self.mapper[(self.mapper["article_id"]) == ids][[
                     "heading", "content"]]
