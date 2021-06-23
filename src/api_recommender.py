@@ -54,9 +54,9 @@ class APIRecommender(object):
         self.embed_local_path = config["embed_size_local"]
 
         self.top_10_recommendation_dict = top_10_recommendations(
-                clickstream_data=self.train_data,
-                article_data=self.mapper,
-            )
+            clickstream_data=self.train_data,
+            article_data=self.mapper,
+        )
 
     def load_existing_weight(self, model_old, embed_size=100, total_user=100):
         # Fetch the weights from old model
@@ -132,7 +132,7 @@ class APIRecommender(object):
             user_hist[user_id] = 1
             # Load the embed size
             with open(self.embed_local_path, "w") as f:
-                f.write('%d' % (len(user_hist) + 1))
+                f.write("%d" % (len(user_hist) + 1))
 
         # Save again
         with open(self.user_hist_path, "wb") as f:
@@ -158,8 +158,9 @@ class APIRecommender(object):
 
         # Combine the df_ft
         article_content = (
-            self.mapper.set_index(
-                "article_id").loc[article_id][content_cols].reset_index(drop=True)
+            self.mapper.set_index("article_id")
+            .loc[article_id][content_cols]
+            .reset_index(drop=True)
         )
         df_ft = pd.concat([df_ft, article_content], axis=1)
 
@@ -182,7 +183,7 @@ class APIRecommender(object):
                 comb_type=self.comb_type,
                 embed_dim=self.user_dimensions,
                 lr=self.learning_rate,
-                user_pretrained=weights_old
+                user_pretrained=weights_old,
             ).get_model()
 
             # Fine tune the model
@@ -205,12 +206,11 @@ class APIRecommender(object):
                 comb_type=self.comb_type,
                 embed_dim=self.user_dimensions,
                 lr=self.learning_rate,
-                user_pretrained=None
+                user_pretrained=None,
             ).get_model()
 
             # Collect the new data
-            all_data = pd.concat(
-                [self.train_data[all_cols], df_ft[all_cols]], axis=0)
+            all_data = pd.concat([self.train_data[all_cols], df_ft[all_cols]], axis=0)
 
             # Train a new model
             obj = TrainHybridModel(
@@ -256,10 +256,7 @@ class APIRecommender(object):
 
         recommendation_dict = {}
         for data in zip(article_id_all, heading_all, content_all):
-            recommendation_dict[data[0]] = {
-                "heading": data[1],
-                "content": data[2]
-            }
+            recommendation_dict[data[0]] = {"heading": data[1], "content": data[2]}
 
         # Return as dict
         return recommendation_dict

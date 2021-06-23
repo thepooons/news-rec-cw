@@ -23,8 +23,7 @@ class DataManager(object):
 
         def get_vector(article_id, article_vectors, vector_columns):
             article_vector = article_vectors.loc[
-                article_vectors.loc[:,
-                                    "article_id"] == article_id, vector_columns
+                article_vectors.loc[:, "article_id"] == article_id, vector_columns
             ]
             return article_vector.values.reshape(1, -1)
 
@@ -40,8 +39,7 @@ class DataManager(object):
             )
         )
         article_vectors_ = np.concatenate(article_vectors_)
-        article_vectors_ = pd.DataFrame(
-            data=article_vectors_, columns=vector_columns)
+        article_vectors_ = pd.DataFrame(data=article_vectors_, columns=vector_columns)
 
         self.data = pd.concat(objs=[self.data, article_vectors_], axis=1)
 
@@ -59,16 +57,17 @@ class DataManager(object):
 
         for user_data in tqdm(self.data.groupby("user_id"), desc="Train-Test Split"):
             num_sessions = len(user_data[1].groupby("session_id"))
-            train_test_split_index = int(
-                num_sessions * (1 - test_fraction))  # 🧠
+            train_test_split_index = int(num_sessions * (1 - test_fraction))  # 🧠
             for session_data in user_data[1].groupby("session_id"):
                 session_id = session_data[0]
                 if session_id < train_test_split_index:
                     self.train_data = pd.concat(
-                        [self.train_data, session_data[1]], axis=0)
+                        [self.train_data, session_data[1]], axis=0
+                    )
                 else:
                     self.test_data = pd.concat(
-                        [self.test_data, session_data[1]], axis=0)
+                        [self.test_data, session_data[1]], axis=0
+                    )
 
         # Save the train and test data
         self.train_data.to_csv(config["train_data_path"], index=False)
@@ -76,15 +75,20 @@ class DataManager(object):
 
     def create_user_hist(self):
         # Save the user dict
-        total_user = np.unique(self.train_data["user_id"].values.tolist()
-                               + self.test_data["user_id"].values.tolist()).tolist()
+        total_user = np.unique(
+            self.train_data["user_id"].values.tolist()
+            + self.test_data["user_id"].values.tolist()
+        ).tolist()
 
         # Init_dict
         dict_user = defaultdict(int)
         for user in total_user:
             # Collect total user sessionss
-            collect_total_sessions = len(np.unique(
-                self.train_data[self.train_data["user_id"] == user]["session_id"]))
+            collect_total_sessions = len(
+                np.unique(
+                    self.train_data[self.train_data["user_id"] == user]["session_id"]
+                )
+            )
 
             # Append to the dict
             dict_user[user] += collect_total_sessions
@@ -94,8 +98,8 @@ class DataManager(object):
             pickle.dump(dict_user, f)
 
         # Make a file to save current embedding size
-        with open(config["embed_size_local"], 'w') as f:
-            f.write('%d' % len(total_user))
+        with open(config["embed_size_local"], "w") as f:
+            f.write("%d" % len(total_user))
 
 
 if __name__ == "__main__":

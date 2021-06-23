@@ -82,8 +82,13 @@ class Evaluate_Global(object):
         """
         # Create the model using train and test data
         model = MfHybridModel(
-            num_user=len(np.unique(self.train_data["user_id"].values.tolist(
-            ) + self.test_data["user_id"].values.tolist())) + 4,
+            num_user=len(
+                np.unique(
+                    self.train_data["user_id"].values.tolist()
+                    + self.test_data["user_id"].values.tolist()
+                )
+            )
+            + 4,
             item_dim=100,  # restricted by GloVe Vectors
             comb_type=self.comb_type,
             embed_dim=self.user_dimensions,
@@ -112,8 +117,7 @@ class Evaluate_Global(object):
         df_ft = pd.concat([df_ft, article_content], axis=1)
 
         # Collect the new data
-        all_data = pd.concat(
-            [self.train_data[all_cols], df_ft[all_cols]], axis=0)
+        all_data = pd.concat([self.train_data[all_cols], df_ft[all_cols]], axis=0)
 
         # Train a new model
         obj = TrainHybridModel(

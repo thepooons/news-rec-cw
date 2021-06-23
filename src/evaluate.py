@@ -42,8 +42,7 @@ class Evaluate(object):
             user_data_test = self.test_data.loc[
                 self.test_data.loc[:, "user_id"] == user_id
             ].reset_index(drop=True)
-            user_average_time_spent = np.mean(
-                user_data_train.loc[:, "time_spent"])
+            user_average_time_spent = np.mean(user_data_train.loc[:, "time_spent"])
 
             recommendation_list = self.recommendation_lists[user_id][0][
                 "article_id"

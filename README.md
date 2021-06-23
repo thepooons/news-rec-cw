@@ -2,7 +2,8 @@
 News Recommendation Coursework by Puneet Singh and Karanjot Singh.
 
 ## How To Run 
-Note: [optional] steps must only be run if you wish to scrape new data, use different GloVe model, and generate new clickstream data. To skip all the optional steps, download data from [here](https://drive.google.com/drive/folders/1QIpL1x9sdTEtsVCvgUczVq_7D3zboSbY?usp=sharing) and extract `data` directory parallel to `main.py`.
+Note: [optional] steps must only be run if you wish to scrape new data, use different GloVe model, and generate new clickstream data. To skip all the optional steps, download data from [here](https://drive.google.com/drive/folders/1QIpL1x9sdTEtsVCvgUczVq_7D3zboSbY?usp=sharing) and extract `data` directory parallel to `main.py`.   
+If you wish to run the project end-to-end, i.e. generate clickstream data, split data, train a Hybrid Collaborative Filtering Recommender System, and interact with it., change `news_env` in `./run.bat` file with your conda environment with all the dependencies installed. Now run `./run.bat` using CLI to generate data, split data, and train a Hybrid Collaborative Filtering Recommender System. To interact with the trained model; change the configuration in `config.yaml` under the `NeuMF config` comment accordingly, and run `./run_app.bat` file. If you wish to run the project with more granular strategy, follow the following steps:
 
 - Install all the dependencies using `pip install -r requirements.txt` or `conda env create -f news_env.yml`
 - Change the parameters in `config.yaml` file to intended values.
